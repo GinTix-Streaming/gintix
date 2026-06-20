@@ -66,6 +66,9 @@ export default function UserMenu({ username, displayName, avatarUrl }: Props) {
             <Link href="/go-live" className="block px-4 py-2 text-ink-muted hover:bg-white/5 hover:text-ink" onClick={() => setOpen(false)}>
               Creator dashboard
             </Link>
+            <Link href="/settings/profile" className="block px-4 py-2 text-ink-muted hover:bg-white/5 hover:text-ink" onClick={() => setOpen(false)}>
+              Profile &amp; settings
+            </Link>
             <button onClick={logout} className="block w-full px-4 py-2 text-left text-ink-muted hover:bg-white/5 hover:text-ink">
               Log out
             </button>

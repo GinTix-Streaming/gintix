@@ -1,62 +1,144 @@
 import Link from "next/link";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import Dashboard from "@/components/Dashboard";
+import { getCreatorContext } from "@/lib/creator";
+import { formatViewers } from "@/lib/format";
+import ChatPanel from "@/components/ChatPanel";
+import ChannelDetailsForm from "@/components/creator/ChannelDetailsForm";
+import LiveTimer from "@/components/creator/LiveTimer";
 
 export const dynamic = "force-dynamic";
 
-export default async function GoLivePage() {
-  const supabase = createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+function Stat({ label, value, accent }: { label: string; value: React.ReactNode; accent?: boolean }) {
+  return (
+    <div className="panel px-4 py-3">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{label}</p>
+      <p className={`mt-1 text-xl font-extrabold tabular-nums ${accent ? "text-amethyst-glow" : "text-ink"}`}>
+        {value}
+      </p>
+    </div>
+  );
+}
 
-  if (!user) {
-    return (
-      <div className="panel mx-auto mt-12 max-w-md p-8 text-center">
-        <h1 className="text-xl font-bold text-ink">Sign in to start streaming</h1>
-        <p className="mt-2 text-sm text-ink-muted">
-          Create your free account and your channel is ready in one click.
-        </p>
-        <Link href="/login?mode=signup" className="btn-amethyst mt-5 inline-flex">
-          Get started
-        </Link>
-      </div>
-    );
-  }
+const ACTIVITY = [
+  { who: "luna_w", what: "followed you", when: "just now" },
+  { who: "drop_god", what: "subscribed (Tier 1)", when: "2m" },
+  { who: "byteme", what: "bought Studio Headset — $129", when: "6m" },
+  { who: "sasha", what: "followed you", when: "11m" },
+  { who: "kappa_king", what: "gifted 5 subs", when: "18m" },
+];
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, username, display_name")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (!profile) {
-    return (
-      <div className="panel mx-auto mt-12 max-w-md p-8 text-center">
-        <p className="text-ink-muted">Setting up your profile… refresh in a moment.</p>
-      </div>
-    );
-  }
-
-  const { data: stream } = await supabase
-    .from("stream_configs")
-    .select(
-      "id, stream_key, playback_id, is_live, title, category, thumbnail_url, multistream_enabled, twitch_target_url, youtube_target_url, tiktok_target_url, kick_target_url"
-    )
-    .eq("creator_id", user.id)
-    .maybeSingle();
-
-  const { data: listings } = await supabase
-    .from("commerce_listings")
-    .select("id, title, description, image_url, price_cents, currency")
-    .eq("creator_id", user.id)
-    .order("created_at", { ascending: true });
+export default async function LiveDashboardPage() {
+  const ctx = await getCreatorContext();
+  if (ctx.status !== "ok" || !ctx.stream) return null; // layout handles gating
+  const { profile, stream } = ctx;
 
   return (
-    <Dashboard
-      profile={profile}
-      stream={stream ?? null}
-      listings={listings ?? []}
-    />
+    <div className="space-y-5">
+      {/* Stat tiles */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <Stat
+          label="Session"
+          value={stream.is_live ? <span className="text-red-500">● Live</span> : "Offline"}
+        />
+        <Stat label="Viewers" value={stream.is_live ? formatViewers(stream.viewer_count) : "0"} accent />
+        <Stat label="Followers" value={formatViewers(profile.follower_count)} />
+        <Stat label="Subscribers" value={formatViewers(stream.sub_count)} />
+        <Stat
+          label="Time live"
+          value={stream.is_live ? <LiveTimer startedAt={stream.started_live_at} /> : "—"}
+        />
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
+        {/* Left column */}
+        <div className="space-y-5">
+          {/* Stream preview */}
+          <section className="panel overflow-hidden">
+            <div className="flex items-center justify-between border-b border-white/5 px-5 py-3">
+              <h2 className="text-sm font-bold uppercase tracking-wide text-ink">Stream preview</h2>
+              <Link href={`/${profile.username}`} className="text-xs text-amethyst-soft hover:underline">
+                Open channel ↗
+              </Link>
+            </div>
+            <div className="relative aspect-video w-full bg-obsidian">
+              {stream.is_live && stream.thumbnail_url ? (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={stream.thumbnail_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                  <span className="absolute left-4 top-4 flex items-center gap-1.5 rounded-md bg-red-600 px-2 py-0.5 text-xs font-bold uppercase text-white">
+                    <span className="h-1.5 w-1.5 rounded-full bg-white" /> Live
+                  </span>
+                </>
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-amethyst-fluid">
+                  <div className="rounded-2xl border border-white/10 bg-black/40 px-6 py-4 text-center backdrop-blur-sm">
+                    <p className="text-2xl font-extrabold tracking-tight text-ink">You&apos;re offline</p>
+                    <p className="mt-1 text-sm text-ink-muted">
+                      Press <span className="font-semibold text-amethyst-soft">Go live</span> when your encoder is running.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Channel details */}
+          <section className="panel p-6">
+            <h2 className="mb-1 text-base font-bold text-ink">Stream information</h2>
+            <p className="mb-4 text-sm text-ink-muted">What viewers see on your stream and in discovery.</p>
+            <ChannelDetailsForm
+              streamId={stream.id}
+              initialTitle={stream.title ?? ""}
+              initialCategory={stream.category ?? ""}
+              initialLanguage={stream.language}
+            />
+          </section>
+
+          {/* Quick actions */}
+          <section className="panel p-6">
+            <h2 className="mb-4 text-base font-bold text-ink">Quick actions</h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <ActionLink href="/go-live/stream" title="Stream URL & key" desc="Copy your RTMP key for OBS" />
+              <ActionLink href="/go-live/moderation" title="Moderation" desc="Chat filters, slow mode, bans" />
+              <ActionLink href="/go-live/shop" title="In-stream shop" desc="Sell products in your player" />
+              <ActionLink href="/go-live/revenue" title="Revenue" desc="Subs, funding & payouts" />
+            </div>
+          </section>
+        </div>
+
+        {/* Right column: chat + activity */}
+        <div className="space-y-5">
+          <section className="panel h-[460px] overflow-hidden">
+            <ChatPanel channel={profile.username} />
+          </section>
+
+          <section className="panel p-5">
+            <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-ink">Activity feed</h2>
+            <ul className="space-y-2.5">
+              {ACTIVITY.map((a, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-amethyst" />
+                  <span className="text-ink">
+                    <span className="font-semibold text-amethyst-soft">{a.who}</span> {a.what}
+                  </span>
+                  <span className="ml-auto shrink-0 text-xs text-ink-muted">{a.when}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ActionLink({ href, title, desc }: { href: string; title: string; desc: string }) {
+  return (
+    <Link
+      href={href}
+      className="card-rise rounded-xl border border-white/8 bg-white/[0.03] p-4 transition hover:border-amethyst/40"
+    >
+      <p className="font-semibold text-ink">{title}</p>
+      <p className="mt-0.5 text-xs text-ink-muted">{desc}</p>
+    </Link>
   );
 }

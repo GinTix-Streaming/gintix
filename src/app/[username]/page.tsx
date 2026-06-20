@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import VideoPlayer from "@/components/VideoPlayer";
 import ChatPanel from "@/components/ChatPanel";
 import ShopSection from "@/components/ShopSection";
+import FollowButton from "@/components/FollowButton";
 import { formatViewers } from "@/lib/format";
 import type { CommerceListing } from "@/components/CommerceDrawer";
 import type { PublicStream } from "@/lib/streams";
@@ -21,7 +22,7 @@ export default async function ChannelPage({ params }: Params) {
   // Channel is keyed on the PROFILE, so it never 404s for a real user.
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, username, display_name, avatar_url")
+    .select("id, username, display_name, avatar_url, banner_url, bio, follower_count")
     .eq("username", username)
     .maybeSingle();
 
@@ -47,6 +48,7 @@ export default async function ChannelPage({ params }: Params) {
   const isOwner = user?.id === profile.id;
 
   let isPremiumViewer = false;
+  let isFollowing = false;
   if (user) {
     const { data: p } = await supabase
       .from("profiles")
@@ -54,6 +56,16 @@ export default async function ChannelPage({ params }: Params) {
       .eq("id", user.id)
       .maybeSingle();
     isPremiumViewer = p?.is_premium_viewer ?? false;
+
+    if (!isOwner) {
+      const { data: f } = await supabase
+        .from("follows")
+        .select("creator_id")
+        .eq("follower_id", user.id)
+        .eq("creator_id", profile.id)
+        .maybeSingle();
+      isFollowing = !!f;
+    }
   }
 
   const isLiveWithVideo = !!(stream && stream.is_live && stream.playback_id);
@@ -62,6 +74,14 @@ export default async function ChannelPage({ params }: Params) {
   return (
     <div className="flex h-[calc(100vh-3.5rem)]">
       <div className="min-w-0 flex-1 overflow-y-auto">
+        {/* Channel banner */}
+        {profile.banner_url && (
+          <div className="relative h-28 w-full sm:h-36">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={profile.banner_url} alt="" className="h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          </div>
+        )}
         {/* Player or offline state */}
         <div className="bg-black">
           <div className="mx-auto max-w-[1400px]">
@@ -129,6 +149,9 @@ export default async function ChannelPage({ params }: Params) {
                   </span>
                 )}
               </div>
+              <p className="mt-0.5 text-sm text-ink-muted">
+                {formatViewers(profile.follower_count ?? 0)} followers
+              </p>
               {stream?.title && <p className="mt-1 font-medium text-ink">{stream.title}</p>}
               <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm">
                 {stream?.category && (
@@ -151,7 +174,11 @@ export default async function ChannelPage({ params }: Params) {
                 <Link href="/go-live" className="btn-amethyst">Creator dashboard</Link>
               ) : (
                 <>
-                  <button className="btn-ghost gap-1.5">♥ Follow</button>
+                  <FollowButton
+                    creatorId={profile.id}
+                    viewerId={user?.id ?? null}
+                    initialFollowing={isFollowing}
+                  />
                   <Link href="/login" className="btn-amethyst">Subscribe</Link>
                 </>
               )}
@@ -163,10 +190,9 @@ export default async function ChannelPage({ params }: Params) {
               About {profile.display_name || profile.username}
             </h2>
             <p className="text-sm leading-relaxed text-ink-muted">
-              {stream?.category ? `Streaming ${stream.category} on GinTix` : "On GinTix"} —
-              where creators keep 100% of their fan funding. Subscribe for the ad-free
-              experience, tip, or grab merch from the in-player shop. Multi-stream
-              everywhere, powered by GinTix.
+              {profile.bio
+                ? profile.bio
+                : `${stream?.category ? `Streaming ${stream.category} on GinTix` : "On GinTix"} — where creators keep 100% of their fan funding. Subscribe for the ad-free experience, tip, or grab merch from the in-player shop. Multi-stream everywhere, powered by GinTix.`}
             </p>
           </div>
 
