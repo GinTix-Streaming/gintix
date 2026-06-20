@@ -17,6 +17,7 @@ interface StreamConfig {
   twitch_target_url: string | null;
   youtube_target_url: string | null;
   tiktok_target_url: string | null;
+  kick_target_url: string | null;
 }
 
 interface Listing {
@@ -67,6 +68,7 @@ export default function Dashboard({ profile, stream: initialStream, listings: in
   const [twitch, setTwitch] = useState(initialStream?.twitch_target_url ?? "");
   const [youtube, setYoutube] = useState(initialStream?.youtube_target_url ?? "");
   const [tiktok, setTiktok] = useState(initialStream?.tiktok_target_url ?? "");
+  const [kick, setKick] = useState(initialStream?.kick_target_url ?? "");
 
   // new product
   const [pName, setPName] = useState("");
@@ -128,13 +130,14 @@ export default function Dashboard({ profile, stream: initialStream, listings: in
   async function saveMultistream() {
     if (!stream) return;
     setBusy("multi");
-    const enabled = !!(twitch || youtube || tiktok);
+    const enabled = !!(twitch || youtube || tiktok || kick);
     const { data } = await supabase
       .from("stream_configs")
       .update({
         twitch_target_url: twitch || null,
         youtube_target_url: youtube || null,
         tiktok_target_url: tiktok || null,
+        kick_target_url: kick || null,
         multistream_enabled: enabled,
       })
       .eq("id", stream.id)
@@ -277,6 +280,10 @@ export default function Dashboard({ profile, stream: initialStream, listings: in
             <div>
               <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-muted">TikTok RTMP URL</label>
               <input className="field font-mono text-xs" value={tiktok} onChange={(e) => setTiktok(e.target.value)} placeholder="rtmp://push.tiktok.com/live/xxx" />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-muted">Kick RTMP URL</label>
+              <input className="field font-mono text-xs" value={kick} onChange={(e) => setKick(e.target.value)} placeholder="rtmps://fa723fc1b171.global-contribute.live-video.net/app/xxx" />
             </div>
             <button onClick={saveMultistream} disabled={busy === "multi"} className="btn-amethyst disabled:opacity-60">
               {busy === "multi" ? "Saving…" : "Save targets"}

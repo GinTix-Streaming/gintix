@@ -41,7 +41,7 @@ export default async function GoLivePage() {
   const { data: stream } = await supabase
     .from("stream_configs")
     .select(
-      "id, stream_key, playback_id, is_live, title, category, thumbnail_url, multistream_enabled, twitch_target_url, youtube_target_url, tiktok_target_url"
+      "id, stream_key, playback_id, is_live, title, category, thumbnail_url, multistream_enabled, twitch_target_url, youtube_target_url, tiktok_target_url, kick_target_url"
     )
     .eq("creator_id", user.id)
     .maybeSingle();

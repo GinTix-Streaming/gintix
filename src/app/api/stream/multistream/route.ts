@@ -12,6 +12,7 @@ interface MultistreamBody {
   twitch?: string;
   youtube?: string;
   tiktok?: string;
+  kick?: string;
 }
 
 function isValidRtmp(url: string | undefined): url is string {
@@ -78,6 +79,7 @@ export async function POST(req: NextRequest) {
     if (isValidRtmp(body.twitch)) targets.push({ name: "twitch", url: body.twitch });
     if (isValidRtmp(body.youtube)) targets.push({ name: "youtube", url: body.youtube });
     if (isValidRtmp(body.tiktok)) targets.push({ name: "tiktok", url: body.tiktok });
+    if (isValidRtmp(body.kick)) targets.push({ name: "kick", url: body.kick });
 
     if (targets.length === 0) {
       return fail("Enable requested but no valid RTMP target URLs supplied", 400);
@@ -99,6 +101,7 @@ export async function POST(req: NextRequest) {
       twitch_target_url: body.enabled ? body.twitch ?? null : null,
       youtube_target_url: body.enabled ? body.youtube ?? null : null,
       tiktok_target_url: body.enabled ? body.tiktok ?? null : null,
+      kick_target_url: body.enabled ? body.kick ?? null : null,
     })
     .eq("id", cfg.id)
     .select()
