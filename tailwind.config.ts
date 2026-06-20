@@ -3,7 +3,7 @@ import type { Config } from "tailwindcss";
 /**
  * GinTix brand system.
  * Deep slate-black canvas, electric obsidian slate panels,
- * cyber-amethyst liquid purple as the single energetic accent.
+ * cyber-amethyst liquid purple as the energetic accent.
  */
 const config: Config = {
   content: [
@@ -13,28 +13,34 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        canvas: "#0B0C10",        // primary deep slate-black interface
-        obsidian: "#1F2833",      // electric obsidian slate (panels/cards)
+        canvas: "#08090d",
+        surface: "#0f1116",
+        obsidian: "#1a1d27",
         amethyst: {
-          DEFAULT: "#8A2BE2",     // cyber-amethyst liquid purple accent
-          glow: "#A64DFF",
-          deep: "#5E1A9E",
+          DEFAULT: "#8a2be2",
+          glow: "#a64dff",
+          deep: "#5e1a9e",
+          soft: "#c08cff",
         },
         ink: {
-          DEFAULT: "#E7E9EE",     // high-contrast foreground
-          muted: "#8B93A7",
+          DEFAULT: "#f2f3f7",
+          muted: "#9aa1b0",
         },
       },
       boxShadow: {
-        glow: "0 0 24px 0 rgba(138, 43, 226, 0.45)",
-        "glow-sm": "0 0 12px 0 rgba(138, 43, 226, 0.35)",
+        glow: "0 0 28px 0 rgba(138, 43, 226, 0.45)",
+        "glow-sm": "0 0 14px 0 rgba(138, 43, 226, 0.35)",
+        card: "0 10px 30px -12px rgba(0,0,0,0.7)",
+        lift: "0 18px 40px -14px rgba(0,0,0,0.8)",
       },
       backgroundImage: {
         "amethyst-fluid":
-          "radial-gradient(120% 120% at 0% 0%, rgba(138,43,226,0.18) 0%, rgba(11,12,16,0) 55%)",
+          "radial-gradient(120% 120% at 0% 0%, rgba(138,43,226,0.22) 0%, rgba(8,9,13,0) 55%)",
+        "amethyst-grad":
+          "linear-gradient(135deg, #8a2be2 0%, #a64dff 100%)",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
       },
     },
   },

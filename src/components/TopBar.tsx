@@ -1,12 +1,33 @@
 import Link from "next/link";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import UserMenu from "@/components/UserMenu";
 
-/** Global top navigation — logo, browse, search, auth + go-live actions. */
-export default function TopBar() {
+/** Global top navigation — logo, search, auth-aware actions. */
+export default async function TopBar() {
+  const supabase = createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let profile: { username: string; display_name: string | null; avatar_url: string | null } | null =
+    null;
+  if (user) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("username, display_name, avatar_url")
+      .eq("id", user.id)
+      .maybeSingle();
+    profile = data;
+  }
+
   return (
-    <header className="sticky top-0 z-50 h-14 border-b border-white/5 bg-canvas/90 backdrop-blur">
+    <header className="sticky top-0 z-50 h-14 border-b border-white/5 bg-canvas/70 backdrop-blur-xl">
       <div className="flex h-full items-center gap-4 px-4">
-        <Link href="/" className="flex items-center gap-2 shrink-0">
-          <span className="text-xl font-extrabold tracking-tight">
+        <Link href="/" className="flex shrink-0 items-center gap-2">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amethyst-grad text-sm font-black text-white shadow-glow-sm">
+            G
+          </span>
+          <span className="text-lg font-extrabold tracking-tight">
             Gin<span className="text-amethyst-glow">Tix</span>
           </span>
         </Link>
@@ -18,7 +39,7 @@ export default function TopBar() {
         </Link>
 
         <div className="mx-auto flex w-full max-w-md items-center">
-          <div className="flex w-full items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-2 focus-within:border-amethyst/60">
+          <div className="flex w-full items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 transition focus-within:border-amethyst/60 focus-within:bg-white/[0.07]">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-ink-muted">
               <circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" />
             </svg>
@@ -30,16 +51,27 @@ export default function TopBar() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <Link href="/go-live" className="btn-amethyst hidden sm:inline-flex">
+        <div className="flex shrink-0 items-center gap-2">
+          <Link href="/go-live" className="btn-ghost hidden sm:inline-flex">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m22 8-6 4 6 4V8z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
             Go live
           </Link>
-          <Link href="/login" className="btn-ghost hidden sm:inline-flex">
-            Log in
-          </Link>
-          <Link href="/login" className="btn-amethyst">
-            Sign up
-          </Link>
+          {profile ? (
+            <UserMenu
+              username={profile.username}
+              displayName={profile.display_name}
+              avatarUrl={profile.avatar_url}
+            />
+          ) : (
+            <>
+              <Link href="/login" className="btn-ghost hidden sm:inline-flex">
+                Log in
+              </Link>
+              <Link href="/login?mode=signup" className="btn-amethyst">
+                Sign up
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
