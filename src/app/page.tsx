@@ -25,47 +25,60 @@ export default async function HomePage() {
                 className="absolute inset-0 h-full w-full object-cover"
               />
             )}
-            <div className="absolute inset-0 bg-gradient-to-r from-canvas via-canvas/85 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-canvas/90 via-transparent to-transparent" />
-            <div className="absolute inset-0 flex flex-col justify-end gap-3 p-6 sm:max-w-2xl sm:p-10">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="flex items-center gap-1.5 rounded-md bg-red-600 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-white">
-                  <span className="h-1.5 w-1.5 rounded-full bg-white" /> Live
-                </span>
-                <span className="text-sm font-medium text-ink">
-                  {formatViewers(featured.viewer_count)} watching
-                </span>
-                <span className="chip">{featured.category}</span>
-              </div>
-              <h1 className="text-3xl font-extrabold leading-[1.05] tracking-tight text-ink sm:text-5xl">
-                {featured.title}
-              </h1>
-              <div className="flex items-center gap-3">
-                {featured.avatar_url && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={featured.avatar_url}
-                    alt=""
-                    className="h-11 w-11 rounded-full object-cover ring-2 ring-amethyst"
-                  />
-                )}
-                <div>
-                  <p className="font-semibold text-ink">
-                    {featured.display_name || featured.username}
-                  </p>
-                  <p className="text-sm text-ink-muted">
-                    @{featured.username}
-                  </p>
+            <div className="absolute inset-0 bg-gradient-to-t from-canvas via-canvas/35 to-transparent" />
+            <span className="absolute left-5 top-5 flex items-center gap-1.5 rounded-md bg-red-600 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-white shadow">
+              <span className="h-1.5 w-1.5 rounded-full bg-white" /> Live
+            </span>
+            <span className="absolute right-5 top-5 rounded-md bg-black/60 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm">
+              {formatViewers(featured.viewer_count)} watching
+            </span>
+
+            {/* floating glass info card */}
+            <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-auto sm:max-w-xl">
+              <div className="rounded-2xl border border-white/10 bg-black/55 p-5 backdrop-blur-md sm:p-6">
+                <h1 className="text-2xl font-extrabold leading-[1.08] tracking-tight text-ink sm:text-4xl">
+                  {featured.title}
+                </h1>
+                <div className="mt-3 flex items-center gap-3">
+                  {featured.avatar_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={featured.avatar_url}
+                      alt=""
+                      className="h-11 w-11 rounded-full object-cover ring-2 ring-amethyst"
+                    />
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-ink">
+                      {featured.display_name || featured.username}
+                    </p>
+                    <p className="truncate text-sm text-amethyst-soft">
+                      {featured.category}
+                    </p>
+                  </div>
+                  <div className="ml-auto hidden gap-2 sm:flex">
+                    {(featured.tags ?? []).slice(0, 2).map((t) => (
+                      <span key={t} className="chip">{t}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-3">
+                  <Link href={`/${featured.username}`} className="btn-amethyst !px-6 !py-2.5">
+                    ▶ Watch now
+                  </Link>
+                  <Link href="/login?mode=signup" className="btn-ghost !py-2.5">
+                    Start your channel
+                  </Link>
                 </div>
               </div>
-              <div className="mt-1 flex items-center gap-3">
-                <Link href={`/${featured.username}`} className="btn-amethyst !px-6 !py-3">
-                  ▶ Watch now
-                </Link>
-                <Link href="/login?mode=signup" className="btn-ghost !py-3">
-                  Start your channel
-                </Link>
-              </div>
+            </div>
+
+            {/* carousel dots (decorative) */}
+            <div className="absolute bottom-6 right-6 hidden items-center gap-1.5 sm:flex">
+              <span className="h-1.5 w-6 rounded-full bg-white/80" />
+              <span className="h-1.5 w-1.5 rounded-full bg-white/35" />
+              <span className="h-1.5 w-1.5 rounded-full bg-white/35" />
+              <span className="h-1.5 w-1.5 rounded-full bg-white/35" />
             </div>
           </div>
         </section>

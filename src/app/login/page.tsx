@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AuthForm from "@/components/AuthForm";
+import { Logo } from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
 
@@ -21,13 +22,8 @@ export default function LoginPage({
     <div className="mx-auto grid min-h-[calc(100vh-3.5rem)] max-w-6xl grid-cols-1 items-center gap-10 px-6 py-10 lg:grid-cols-2">
       {/* Brand panel */}
       <div className="hidden lg:block">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amethyst-grad text-base font-black text-white shadow-glow">
-            G
-          </span>
-          <span className="text-2xl font-extrabold tracking-tight">
-            Gin<span className="text-amethyst-glow">Tix</span>
-          </span>
+        <Link href="/" className="inline-flex items-center">
+          <Logo size={40} />
         </Link>
         <h1 className="mt-8 max-w-md text-4xl font-extrabold leading-tight">
           The creator-first home for{" "}
@@ -54,10 +50,8 @@ export default function LoginPage({
       {/* Auth card */}
       <div className="mx-auto w-full max-w-md">
         <div className="panel p-7 shadow-lift">
-          <div className="mb-6 text-center lg:hidden">
-            <span className="text-2xl font-extrabold tracking-tight">
-              Gin<span className="text-amethyst-glow">Tix</span>
-            </span>
+          <div className="mb-6 flex justify-center lg:hidden">
+            <Logo size={34} />
           </div>
           <h2 className="mb-1 text-xl font-bold">Welcome to GinTix</h2>
           <p className="mb-6 text-sm text-ink-muted">

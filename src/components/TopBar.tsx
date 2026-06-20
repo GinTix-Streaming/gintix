@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import UserMenu from "@/components/UserMenu";
+import { Logo } from "@/components/Logo";
 
 /** Global top navigation — logo, search, auth-aware actions. */
 export default async function TopBar() {
@@ -23,13 +24,8 @@ export default async function TopBar() {
   return (
     <header className="sticky top-0 z-50 h-14 border-b border-white/5 bg-canvas/70 backdrop-blur-xl">
       <div className="flex h-full items-center gap-4 px-4">
-        <Link href="/" className="flex shrink-0 items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amethyst-grad text-sm font-black text-white shadow-glow-sm">
-            G
-          </span>
-          <span className="text-lg font-extrabold tracking-tight">
-            Gin<span className="text-amethyst-glow">Tix</span>
-          </span>
+        <Link href="/" className="flex shrink-0 items-center">
+          <Logo size={30} />
         </Link>
         <Link
           href="/"

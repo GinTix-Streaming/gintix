@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import VideoPlayer from "@/components/VideoPlayer";
 import ChatPanel from "@/components/ChatPanel";
+import ShopSection from "@/components/ShopSection";
 import { formatViewers } from "@/lib/format";
 import type { CommerceListing } from "@/components/CommerceDrawer";
 import type { PublicStream } from "@/lib/streams";
@@ -16,6 +18,15 @@ export default async function ChannelPage({ params }: Params) {
   const supabase = createSupabaseServerClient();
   const username = params.username.toLowerCase();
 
+  // Channel is keyed on the PROFILE, so it never 404s for a real user.
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, username, display_name, avatar_url")
+    .eq("username", username)
+    .maybeSingle();
+
+  if (!profile) notFound();
+
   const { data: stream } = await supabase
     .from("public_streams")
     .select(
@@ -24,116 +35,150 @@ export default async function ChannelPage({ params }: Params) {
     .eq("username", username)
     .maybeSingle<PublicStream>();
 
-  if (!stream || !stream.playback_id) notFound();
-
   const { data: listings } = await supabase
     .from("commerce_listings")
     .select("id, title, description, image_url, price_cents, currency")
-    .eq("creator_id", stream.creator_id)
+    .eq("creator_id", profile.id)
     .eq("is_active", true);
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const isOwner = user?.id === profile.id;
 
   let isPremiumViewer = false;
   if (user) {
-    const { data: profile } = await supabase
+    const { data: p } = await supabase
       .from("profiles")
       .select("is_premium_viewer")
       .eq("id", user.id)
       .maybeSingle();
-    isPremiumViewer = profile?.is_premium_viewer ?? false;
+    isPremiumViewer = p?.is_premium_viewer ?? false;
   }
+
+  const isLiveWithVideo = !!(stream && stream.is_live && stream.playback_id);
+  const shopListings = (listings as CommerceListing[]) ?? [];
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)]">
       <div className="min-w-0 flex-1 overflow-y-auto">
+        {/* Player or offline state */}
         <div className="bg-black">
           <div className="mx-auto max-w-[1400px]">
-            <VideoPlayer
-              playbackId={stream.playback_id}
-              channel={stream.username}
-              isLive={stream.is_live}
-              isPremiumViewer={isPremiumViewer}
-              listings={(listings as CommerceListing[]) ?? []}
-            />
+            {isLiveWithVideo ? (
+              <VideoPlayer
+                playbackId={stream!.playback_id!}
+                channel={profile.username}
+                isLive={stream!.is_live}
+                isPremiumViewer={isPremiumViewer}
+                listings={shopListings}
+              />
+            ) : (
+              <div className="relative flex aspect-video w-full items-center justify-center bg-gradient-to-b from-obsidian to-canvas">
+                <div className="text-center">
+                  <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/10">
+                    {profile.avatar_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={profile.avatar_url} alt="" className="h-20 w-20 rounded-full object-cover" />
+                    ) : (
+                      <span className="text-2xl font-bold text-amethyst-glow">
+                        {profile.username.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-lg font-semibold text-ink">
+                    {profile.display_name || profile.username} is offline
+                  </p>
+                  <p className="mt-1 text-sm text-ink-muted">
+                    {isOwner
+                      ? "Set up your channel and go live in one click."
+                      : "Follow to get notified when they go live."}
+                  </p>
+                  {isOwner && (
+                    <Link href="/go-live" className="btn-amethyst mt-4 inline-flex">
+                      Open creator dashboard
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
+        {/* Creator header */}
         <div className="mx-auto max-w-[1400px] px-4 py-4 sm:px-6">
           <div className="flex flex-wrap items-start gap-4">
-            {stream.avatar_url ? (
+            {profile.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={stream.avatar_url}
-                alt={stream.username}
-                className="h-16 w-16 rounded-full border-2 border-amethyst object-cover"
-              />
+              <img src={profile.avatar_url} alt={profile.username} className="h-16 w-16 rounded-full border-2 border-amethyst object-cover" />
             ) : (
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-obsidian text-xl font-bold text-amethyst-glow">
-                {stream.username.charAt(0).toUpperCase()}
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amethyst-grad text-xl font-bold text-white">
+                {profile.username.charAt(0).toUpperCase()}
               </div>
             )}
 
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-xl font-bold text-ink">
-                  {stream.display_name || stream.username}
+                  {profile.display_name || profile.username}
                 </h1>
-                <span className="text-sm text-ink-muted">@{stream.username}</span>
-              </div>
-              <p className="mt-1 font-medium text-ink">{stream.title}</p>
-              <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm">
-                <span className="font-semibold text-amethyst-glow">
-                  {stream.category}
-                </span>
-                {(stream.tags ?? []).map((t) => (
-                  <span key={t} className="chip">
-                    {t}
+                <span className="text-sm text-ink-muted">@{profile.username}</span>
+                {isLiveWithVideo && (
+                  <span className="flex items-center gap-1.5 rounded-md bg-red-600/90 px-2 py-0.5 text-xs font-bold uppercase text-white">
+                    <span className="h-1.5 w-1.5 rounded-full bg-white" /> Live
                   </span>
+                )}
+              </div>
+              {stream?.title && <p className="mt-1 font-medium text-ink">{stream.title}</p>}
+              <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm">
+                {stream?.category && (
+                  <span className="font-semibold text-amethyst-glow">{stream.category}</span>
+                )}
+                {(stream?.tags ?? []).map((t) => (
+                  <span key={t} className="chip">{t}</span>
                 ))}
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1.5 rounded-md bg-white/5 px-3 py-2 text-sm font-semibold text-ink">
-                <span className="live-dot" />
-                {formatViewers(stream.viewer_count)}
-              </span>
-              <button className="btn-ghost gap-1.5">♥ Follow</button>
-              <a href="/login" className="btn-amethyst">
-                Subscribe
-              </a>
+              {isLiveWithVideo && (
+                <span className="flex items-center gap-1.5 rounded-md bg-white/5 px-3 py-2 text-sm font-semibold text-ink">
+                  <span className="live-dot" />
+                  {formatViewers(stream!.viewer_count)}
+                </span>
+              )}
+              {isOwner ? (
+                <Link href="/go-live" className="btn-amethyst">Creator dashboard</Link>
+              ) : (
+                <>
+                  <button className="btn-ghost gap-1.5">♥ Follow</button>
+                  <Link href="/login" className="btn-amethyst">Subscribe</Link>
+                </>
+              )}
             </div>
           </div>
 
           <div className="panel mt-5 p-5">
             <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-ink-muted">
-              About {stream.display_name || stream.username}
+              About {profile.display_name || profile.username}
             </h2>
             <p className="text-sm leading-relaxed text-ink-muted">
-              Streaming {stream.category} on GinTix — where creators keep 100% of
-              their fan funding. Subscribe for the ad-free experience, drop a tip,
-              or grab merch from the in-player shop. Multi-stream everywhere,
-              powered by GinTix.
+              {stream?.category ? `Streaming ${stream.category} on GinTix` : "On GinTix"} —
+              where creators keep 100% of their fan funding. Subscribe for the ad-free
+              experience, tip, or grab merch from the in-player shop. Multi-stream
+              everywhere, powered by GinTix.
             </p>
           </div>
 
-          {!isPremiumViewer && (
-            <a
-              href="/login"
-              className="mt-4 inline-block text-sm text-amethyst-glow hover:underline"
-            >
-              Go ad-free with a Premium pass →
-            </a>
-          )}
+          <ShopSection listings={shopListings} />
         </div>
       </div>
 
-      <div className="hidden w-[340px] shrink-0 lg:block">
-        <ChatPanel channel={stream.username} />
-      </div>
+      {isLiveWithVideo && (
+        <div className="hidden w-[340px] shrink-0 lg:block">
+          <ChatPanel channel={profile.username} />
+        </div>
+      )}
     </div>
   );
 }
