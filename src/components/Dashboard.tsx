@@ -77,6 +77,39 @@ export default function Dashboard({ profile, stream: initialStream, listings: in
 
   async function createChannel() {
     setBusy("create");
+
+    // Prefer real Livepeer provisioning — mints a genuine RTMP key + HLS
+    // playbackId. Works as soon as LIVEPEER_API_KEY is set in the environment.
+    try {
+      const res = await fetch("/api/stream/provision", { method: "POST" });
+      const json = await res.json();
+      if (json?.ok && json.data?.streamConfig) {
+        const sc = json.data.streamConfig as StreamConfig;
+        // Give the freshly-provisioned channel sensible defaults + a thumbnail.
+        const { data: updated } = await supabase
+          .from("stream_configs")
+          .update({
+            title: sc.title ?? "My first GinTix stream",
+            category: sc.category ?? "Just Chatting",
+            thumbnail_url:
+              sc.thumbnail_url ?? `https://picsum.photos/seed/${profile.username}/640/360`,
+          })
+          .eq("id", sc.id)
+          .select()
+          .single();
+        const finalSc = (updated as StreamConfig) ?? sc;
+        setStream(finalSc);
+        setTitle(finalSc.title ?? "");
+        setCategory(finalSc.category ?? "");
+        router.refresh();
+        setBusy(null);
+        return;
+      }
+    } catch {
+      /* fall through to demo channel */
+    }
+
+    // Fallback: self-serve demo channel (no Livepeer key configured yet).
     const key = "gtx_" + Math.random().toString(36).slice(2, 12) + Math.random().toString(36).slice(2, 8);
     const { data, error } = await supabase
       .from("stream_configs")
