@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { publicEnv } from "@/lib/env";
 import { ok, fail } from "@/lib/api";
 
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
   if (error || !listing) return fail("Listing not found or inactive", 404);
 
   try {
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       mode: "payment",
       line_items: [
         listing.stripe_price_id

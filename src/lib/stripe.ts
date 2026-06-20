@@ -3,12 +3,21 @@ import Stripe from "stripe";
 import { serverEnv } from "@/lib/env";
 
 /**
- * Singleton Stripe client. Pinned API version for predictable webhook shapes.
+ * Lazily instantiate the Stripe client at request time, never at import time.
+ * Instantiating at module load would throw during `next build` (page-data
+ * collection imports these modules) when STRIPE_SECRET_KEY is absent.
  */
-export const stripe = new Stripe(serverEnv.stripeSecretKey, {
-  apiVersion: "2024-06-20",
-  appInfo: { name: "GinTix", url: "https://gintix.com" },
-});
+let _stripe: Stripe | null = null;
+
+export function getStripe(): Stripe {
+  if (!_stripe) {
+    _stripe = new Stripe(serverEnv.stripeSecretKey, {
+      apiVersion: "2024-06-20",
+      appInfo: { name: "GinTix", url: "https://gintix.com" },
+    });
+  }
+  return _stripe;
+}
 
 /** Map a Stripe price id back to our internal plan tier. */
 export function planTierForPrice(

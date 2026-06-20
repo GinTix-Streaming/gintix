@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
-import { stripe, planTierForPrice } from "@/lib/stripe";
+import { getStripe, planTierForPrice } from "@/lib/stripe";
 import { serverEnv } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { BillingStatus, PlanTier } from "@/types/database";
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(
+    event = getStripe().webhooks.constructEvent(
       raw,
       sig,
       serverEnv.stripeWebhookSecret

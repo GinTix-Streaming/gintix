@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { publicEnv, serverEnv } from "@/lib/env";
 import { ok, fail } from "@/lib/api";
 
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     .maybeSingle();
 
   try {
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
       customer: ledger?.stripe_customer_id ?? undefined,
