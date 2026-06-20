@@ -1,7 +1,12 @@
 import { publicEnv } from "@/lib/env";
 
 /** Build the HLS master playlist URL for a Livepeer playbackId. */
+// Public test stream used only by seeded "demo:" channels, so the platform
+// is viewable end-to-end before a real Livepeer key is configured.
+const DEMO_HLS = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8";
+
 export function hlsUrlFor(playbackId: string): string {
+  if (playbackId.startsWith("demo:")) return DEMO_HLS;
   return `${publicEnv.livepeerPlaybackHost}/hls/${playbackId}/index.m3u8`;
 }
 
