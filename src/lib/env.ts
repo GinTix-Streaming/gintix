@@ -18,19 +18,20 @@ function optional(name: string, fallback = ""): string {
   return process.env[name] ?? fallback;
 }
 
-// Client-safe (NEXT_PUBLIC_*)
+// Client-safe (NEXT_PUBLIC_*).
+// IMPORTANT: reference each var STATICALLY as process.env.NEXT_PUBLIC_X so
+// Next.js inlines the value into the client bundle. A dynamic lookup like
+// process.env[name] is NOT inlined and would be undefined in the browser.
 export const publicEnv = {
-  siteUrl: optional("NEXT_PUBLIC_SITE_URL", "http://localhost:3000"),
-  supabaseUrl: optional("NEXT_PUBLIC_SUPABASE_URL"),
-  supabaseAnonKey: optional("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
-  livepeerPlaybackHost: optional(
-    "NEXT_PUBLIC_LIVEPEER_PLAYBACK_HOST",
-    "https://lp-playback.studio"
-  ),
-  stripePublishableKey: optional("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"),
-  gamNetworkCode: optional("NEXT_PUBLIC_GAM_NETWORK_CODE"),
-  gamAdUnit: optional("NEXT_PUBLIC_GAM_AD_UNIT"),
-  vmapAdTagUrl: optional("NEXT_PUBLIC_VMAP_AD_TAG_URL"),
+  siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+  supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+  livepeerPlaybackHost:
+    process.env.NEXT_PUBLIC_LIVEPEER_PLAYBACK_HOST || "https://lp-playback.studio",
+  stripePublishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "",
+  gamNetworkCode: process.env.NEXT_PUBLIC_GAM_NETWORK_CODE ?? "",
+  gamAdUnit: process.env.NEXT_PUBLIC_GAM_AD_UNIT ?? "",
+  vmapAdTagUrl: process.env.NEXT_PUBLIC_VMAP_AD_TAG_URL ?? "",
 };
 
 // Server-only — accessed via getters so they throw only when actually used.
