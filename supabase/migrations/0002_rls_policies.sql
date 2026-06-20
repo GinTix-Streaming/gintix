@@ -82,7 +82,7 @@ create policy "commerce: owner delete"
 
 -- ── Safe public view of live streams (no secret stream_key) ─────────
 create or replace view public.public_streams
-with (security_invoker = on) as
+with (security_invoker = off) as
   select
     sc.creator_id,
     p.username,
