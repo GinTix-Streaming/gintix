@@ -157,12 +157,12 @@ export default async function HomePage() {
             Gin<span className="text-amethyst-glow">Tix</span>
           </span>
           <nav className="flex flex-wrap gap-x-6 gap-y-2">
-            <span className="cursor-pointer transition hover:text-ink">About</span>
-            <span className="cursor-pointer transition hover:text-ink">Creators</span>
-            <span className="cursor-pointer transition hover:text-ink">Pricing</span>
-            <span className="cursor-pointer transition hover:text-ink">Safety</span>
-            <span className="cursor-pointer transition hover:text-ink">Terms</span>
-            <span className="cursor-pointer transition hover:text-ink">Privacy</span>
+            <Link href="/about" className="transition hover:text-ink">About</Link>
+            <Link href="/creators" className="transition hover:text-ink">Creators</Link>
+            <Link href="/pricing" className="transition hover:text-ink">Pricing</Link>
+            <Link href="/safety" className="transition hover:text-ink">Safety</Link>
+            <Link href="/terms" className="transition hover:text-ink">Terms</Link>
+            <Link href="/privacy" className="transition hover:text-ink">Privacy</Link>
           </nav>
           <span className="text-xs">© {new Date().getFullYear()} GinTix</span>
         </div>
