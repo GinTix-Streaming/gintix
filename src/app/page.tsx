@@ -159,6 +159,7 @@ export default async function HomePage() {
           <nav className="flex flex-wrap gap-x-6 gap-y-2">
             <Link href="/about" className="transition hover:text-ink">About</Link>
             <Link href="/creators" className="transition hover:text-ink">Creators</Link>
+            <Link href="/advertise" className="transition hover:text-ink">Advertise</Link>
             <Link href="/pricing" className="transition hover:text-ink">Pricing</Link>
             <Link href="/safety" className="transition hover:text-ink">Safety</Link>
             <Link href="/terms" className="transition hover:text-ink">Terms</Link>

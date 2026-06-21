@@ -33,6 +33,12 @@ export default async function TopBar() {
         >
           Browse
         </Link>
+        <Link
+          href="/advertise"
+          className="hidden rounded-md px-3 py-1.5 text-sm font-semibold text-ink-muted transition hover:bg-white/5 hover:text-ink md:block"
+        >
+          Advertise
+        </Link>
 
         <div className="mx-auto flex w-full max-w-md items-center">
           <div className="flex w-full items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 transition focus-within:border-amethyst/60 focus-within:bg-white/[0.07]">

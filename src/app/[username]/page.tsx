@@ -5,6 +5,7 @@ import VideoPlayer from "@/components/VideoPlayer";
 import ChatPanel from "@/components/ChatPanel";
 import ShopSection from "@/components/ShopSection";
 import FollowButton from "@/components/FollowButton";
+import PrerollAd from "@/components/PrerollAd";
 import { formatViewers } from "@/lib/format";
 import type { CommerceListing } from "@/components/CommerceDrawer";
 import type { PublicStream } from "@/lib/streams";
@@ -84,7 +85,14 @@ export default async function ChannelPage({ params }: Params) {
         )}
         {/* Player or offline state */}
         <div className="bg-black">
-          <div className="mx-auto max-w-[1400px]">
+          <div className="relative mx-auto max-w-[1400px]">
+            {isLiveWithVideo && !isOwner && (
+              <PrerollAd
+                category={stream?.category ?? ""}
+                channel={profile.username}
+                isPremium={isPremiumViewer}
+              />
+            )}
             {isLiveWithVideo ? (
               <VideoPlayer
                 playbackId={stream!.playback_id!}
@@ -197,6 +205,17 @@ export default async function ChannelPage({ params }: Params) {
           </div>
 
           <ShopSection listings={shopListings} />
+
+          {!isOwner && !isPremiumViewer && (
+            <div className="mt-5 max-w-md">
+              <PrerollAd
+                mode="companion"
+                category={stream?.category ?? ""}
+                channel={profile.username}
+                isPremium={isPremiumViewer}
+              />
+            </div>
+          )}
         </div>
       </div>
 
