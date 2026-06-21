@@ -42,7 +42,22 @@ export default function PrerollAd({
     fetch(`/api/ads/serve?${params}`)
       .then((r) => r.json())
       .then((j) => {
-        if (active && j?.ok && j.data?.ad) setAd(j.data.ad);
+        if (!active || !j?.ok || !j.data?.ad) return;
+        const served = j.data.ad as Ad;
+        // Frequency cap: at most 3 views of a campaign per hour, per browser.
+        try {
+          const key = `gtx_adfreq_${served.campaign_id}`;
+          const now = Date.now();
+          const hist: number[] = JSON.parse(localStorage.getItem(key) || "[]").filter(
+            (t: number) => now - t < 3_600_000
+          );
+          if (hist.length >= 3) return; // capped — skip showing
+          hist.push(now);
+          localStorage.setItem(key, JSON.stringify(hist));
+        } catch {
+          /* localStorage unavailable — show anyway */
+        }
+        setAd(served);
       })
       .catch(() => {});
     return () => {

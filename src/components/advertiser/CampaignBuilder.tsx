@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { AD_CATEGORIES, AD_GEOS, AD_DEVICES, AD_OBJECTIVES } from "@/lib/ad-constants";
+import ImageUpload from "@/components/ImageUpload";
 
 function Chips({
   options,
@@ -216,10 +217,7 @@ export default function CampaignBuilder({ advertiserId }: { advertiserId: string
                 <input className="field font-mono text-xs" value={clickUrl} onChange={(e) => setClickUrl(e.target.value)} placeholder="https://acme.com/offer" />
               </div>
             </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-muted">Media URL (image/video, optional)</label>
-              <input className="field font-mono text-xs" value={mediaUrl} onChange={(e) => setMediaUrl(e.target.value)} placeholder="https://…/creative.jpg" />
-            </div>
+            <ImageUpload label="Creative image (optional)" value={mediaUrl} onChange={setMediaUrl} prefix="creatives" aspect="video" />
           </div>
         </section>
 

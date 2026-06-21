@@ -15,6 +15,7 @@ export interface Campaign {
   name: string;
   objective: string;
   status: string;
+  review_status?: string;
   daily_budget_cents: number;
   total_budget_cents: number;
   bid_cpm_cents: number;

@@ -31,7 +31,8 @@ export async function GET(req: NextRequest) {
     .select(
       "id, advertiser_id, bid_cpm_cents, total_budget_cents, target_categories, start_date, end_date, exclude_premium"
     )
-    .eq("status", "active");
+    .eq("status", "active")
+    .eq("review_status", "approved");
 
   if (error || !campaigns?.length) return ok({ ad: null, reason: "no-campaigns" });
 
@@ -71,8 +72,23 @@ export async function GET(req: NextRequest) {
     return spent < c.total_budget_cents;
   });
 
-  const pool = withBudget.length ? withBudget : [];
-  if (!pool.length) return ok({ ad: null, reason: "budget-exhausted" });
+  // Balance gate: an advertiser can't serve past their funded balance.
+  const advIds = [...new Set(withBudget.map((c: { advertiser_id: string }) => c.advertiser_id))];
+  const { data: advs } = await admin
+    .from("advertisers")
+    .select("id, balance_cents")
+    .in("id", advIds);
+  const balance: Record<string, number> = {};
+  (advs ?? []).forEach((a: { id: string; balance_cents: number }) => {
+    balance[a.id] = a.balance_cents;
+  });
+
+  const pool = withBudget.filter((c: { id: string; advertiser_id: string; bid_cpm_cents: number }) => {
+    const spent = Math.round(((impCount[c.id] ?? 0) * c.bid_cpm_cents) / 1000);
+    const bal = balance[c.advertiser_id] ?? 0;
+    return bal > spent; // must have funds remaining
+  });
+  if (!pool.length) return ok({ ad: null, reason: "no-funds" });
 
   // Highest bid wins, ties broken randomly (second-price-ish ordering).
   pool.sort((a: { bid_cpm_cents: number }, b: { bid_cpm_cents: number }) => b.bid_cpm_cents - a.bid_cpm_cents);

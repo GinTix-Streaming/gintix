@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getCreatorContext } from "@/lib/creator";
 import { formatViewers } from "@/lib/format";
-import ChatPanel from "@/components/ChatPanel";
+import LiveChat from "@/components/LiveChat";
 import ChannelDetailsForm from "@/components/creator/ChannelDetailsForm";
 import LiveTimer from "@/components/creator/LiveTimer";
 
@@ -108,7 +108,19 @@ export default async function LiveDashboardPage() {
         {/* Right column: chat + activity */}
         <div className="space-y-5">
           <section className="panel h-[460px] overflow-hidden">
-            <ChatPanel channel={profile.username} />
+            <LiveChat
+              channelId={profile.id}
+              channelName={profile.username}
+              viewer={{ id: profile.id, username: profile.username }}
+              moderation={{
+                slowModeSeconds: stream.slow_mode_seconds,
+                followersOnly: stream.followers_only,
+                subscribersOnly: stream.subscribers_only,
+                emotesOnly: stream.emotes_only,
+              }}
+              isFollower
+              isOwner
+            />
           </section>
 
           <section className="panel p-5">

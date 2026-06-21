@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import TopBar from "@/components/TopBar";
 import Sidebar from "@/components/Sidebar";
+import CookieConsent from "@/components/CookieConsent";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -34,6 +35,7 @@ export default function RootLayout({
           <Sidebar />
           <main className="min-w-0 flex-1">{children}</main>
         </div>
+        <CookieConsent />
       </body>
     </html>
   );

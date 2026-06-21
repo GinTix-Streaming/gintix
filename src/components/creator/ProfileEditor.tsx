@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import ImageUpload from "@/components/ImageUpload";
 
 interface Init {
   displayName: string;
@@ -94,20 +95,9 @@ export default function ProfileEditor({
           />
         </div>
 
-        <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-muted">Avatar image URL</label>
-          <input className="field font-mono text-xs" value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} placeholder="https://…/avatar.png" />
-        </div>
-
-        <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-muted">Channel banner URL</label>
-          <input className="field font-mono text-xs" value={bannerUrl} onChange={(e) => setBannerUrl(e.target.value)} placeholder="https://…/banner.jpg (1200×134+)" />
-        </div>
-
-        <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-muted">Offline banner URL</label>
-          <input className="field font-mono text-xs" value={offlineBannerUrl} onChange={(e) => setOfflineBannerUrl(e.target.value)} placeholder="https://…/offline.jpg" />
-        </div>
+        <ImageUpload label="Avatar" value={avatarUrl} onChange={setAvatarUrl} prefix="avatars" aspect="square" />
+        <ImageUpload label="Channel banner" value={bannerUrl} onChange={setBannerUrl} prefix="banners" aspect="banner" />
+        <ImageUpload label="Offline banner" value={offlineBannerUrl} onChange={setOfflineBannerUrl} prefix="offline" aspect="banner" />
 
         <div className="flex items-center gap-3 pt-1">
           <button onClick={save} disabled={busy} className="btn-amethyst disabled:opacity-60">

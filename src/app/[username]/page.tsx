@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import VideoPlayer from "@/components/VideoPlayer";
-import ChatPanel from "@/components/ChatPanel";
+import LiveChat from "@/components/LiveChat";
 import ShopSection from "@/components/ShopSection";
 import FollowButton from "@/components/FollowButton";
 import PrerollAd from "@/components/PrerollAd";
@@ -32,10 +32,10 @@ export default async function ChannelPage({ params }: Params) {
   const { data: stream } = await supabase
     .from("public_streams")
     .select(
-      "creator_id, username, display_name, avatar_url, playback_id, is_live, title, category, thumbnail_url, viewer_count, tags"
+      "creator_id, username, display_name, avatar_url, playback_id, is_live, title, category, thumbnail_url, viewer_count, tags, slow_mode_seconds, followers_only, subscribers_only, emotes_only"
     )
     .eq("username", username)
-    .maybeSingle<PublicStream>();
+    .maybeSingle<PublicStream & { slow_mode_seconds: number; followers_only: boolean; subscribers_only: boolean; emotes_only: boolean }>();
 
   const { data: listings } = await supabase
     .from("commerce_listings")
@@ -50,13 +50,15 @@ export default async function ChannelPage({ params }: Params) {
 
   let isPremiumViewer = false;
   let isFollowing = false;
+  let viewerUsername: string | null = null;
   if (user) {
     const { data: p } = await supabase
       .from("profiles")
-      .select("is_premium_viewer")
+      .select("is_premium_viewer, username")
       .eq("id", user.id)
       .maybeSingle();
     isPremiumViewer = p?.is_premium_viewer ?? false;
+    viewerUsername = p?.username ?? null;
 
     if (!isOwner) {
       const { data: f } = await supabase
@@ -221,7 +223,19 @@ export default async function ChannelPage({ params }: Params) {
 
       {isLiveWithVideo && (
         <div className="hidden w-[340px] shrink-0 lg:block">
-          <ChatPanel channel={profile.username} />
+          <LiveChat
+            channelId={profile.id}
+            channelName={profile.username}
+            viewer={user && viewerUsername ? { id: user.id, username: viewerUsername } : null}
+            moderation={{
+              slowModeSeconds: stream?.slow_mode_seconds ?? 0,
+              followersOnly: stream?.followers_only ?? false,
+              subscribersOnly: stream?.subscribers_only ?? false,
+              emotesOnly: stream?.emotes_only ?? false,
+            }}
+            isFollower={isFollowing}
+            isOwner={isOwner}
+          />
         </div>
       )}
     </div>

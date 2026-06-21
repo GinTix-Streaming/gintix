@@ -48,6 +48,9 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
           <h1 className="mt-1 flex items-center gap-2 text-xl font-extrabold text-ink">
             {c.name}
             <span className="rounded-md bg-white/8 px-2 py-0.5 text-xs font-semibold capitalize text-ink-muted">{c.status}</span>
+            <span className={`rounded-md px-2 py-0.5 text-xs font-semibold capitalize ${(c.review_status ?? "approved") === "approved" ? "bg-green-500/15 text-green-300" : "bg-yellow-500/15 text-yellow-300"}`}>
+              {(c.review_status ?? "approved") === "approved" ? "✓ Approved" : "In review"}
+            </span>
           </h1>
           <p className="text-sm capitalize text-ink-muted">{c.objective} objective</p>
         </div>

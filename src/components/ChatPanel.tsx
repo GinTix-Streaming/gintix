@@ -31,7 +31,7 @@ export default function ChatPanel({ channel }: { channel: string }) {
       text: LINES[i % LINES.length],
     }))
   );
-  const endRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const idRef = useRef(100);
 
   useEffect(() => {
@@ -52,7 +52,10 @@ export default function ChatPanel({ channel }: { channel: string }) {
   }, []);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    // Scroll only the chat container — never the page (scrollIntoView would
+    // yank the whole window on tall pages like the creator dashboard).
+    const el = listRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [msgs]);
 
   return (
@@ -64,7 +67,7 @@ export default function ChatPanel({ channel }: { channel: string }) {
         <span className="text-xs text-ink-muted">#{channel}</span>
       </div>
 
-      <div className="flex-1 space-y-1.5 overflow-y-auto px-3 py-3">
+      <div ref={listRef} className="flex-1 space-y-1.5 overflow-y-auto px-3 py-3">
         {msgs.map((m) => (
           <p key={m.id} className="text-sm leading-snug">
             <span className="font-semibold" style={{ color: colorForName(m.user) }}>
@@ -74,7 +77,6 @@ export default function ChatPanel({ channel }: { channel: string }) {
             <span className="text-ink">{m.text}</span>
           </p>
         ))}
-        <div ref={endRef} />
       </div>
 
       <div className="border-t border-white/5 p-3">
