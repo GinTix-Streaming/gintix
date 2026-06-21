@@ -29,7 +29,7 @@ export default async function TopBar() {
           <Logo size={30} />
         </Link>
         <Link
-          href="/"
+          href="/browse"
           className="hidden rounded-md px-3 py-1.5 text-sm font-semibold text-ink-muted transition hover:bg-white/5 hover:text-ink sm:block"
         >
           Browse

@@ -9,12 +9,12 @@ const NAV = [
     icon: <path d="M3 11.5 12 4l9 7.5M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9" />,
   },
   {
-    href: "/",
+    href: "/browse",
     label: "Browse",
     icon: <><rect x="3" y="4" width="18" height="14" rx="2" /><path d="M3 9h18M9 18v2m6-2v2" /></>,
   },
   {
-    href: "/login",
+    href: "/following",
     label: "Following",
     icon: <path d="M20.8 5.6a4.6 4.6 0 0 0-7-.6L12 6.6 10.2 5a4.6 4.6 0 1 0-6.5 6.5l8.3 8.3 8.3-8.3a4.6 4.6 0 0 0 .5-5.9Z" />,
   },
