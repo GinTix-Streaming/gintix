@@ -24,13 +24,13 @@ export default async function TopBar() {
 
   return (
     <header className="sticky top-0 z-50 h-14 border-b border-white/5 bg-canvas/70 backdrop-blur-xl">
-      <div className="flex h-full items-center gap-4 px-4">
+      <div className="flex h-full items-center gap-2 px-3 sm:gap-4 sm:px-4">
         <Link href="/" className="flex shrink-0 items-center">
           <Logo size={30} />
         </Link>
         <Link
           href="/browse"
-          className="hidden rounded-md px-3 py-1.5 text-sm font-semibold text-ink-muted transition hover:bg-white/5 hover:text-ink sm:block"
+          className="hidden rounded-md px-3 py-1.5 text-sm font-semibold text-ink-muted transition hover:bg-white/5 hover:text-ink md:block"
         >
           Browse
         </Link>
@@ -44,7 +44,7 @@ export default async function TopBar() {
         <SearchBar />
 
         <div className="flex shrink-0 items-center gap-2">
-          <Link href="/go-live" className="btn-ghost hidden sm:inline-flex">
+          <Link href="/go-live" className="btn-ghost hidden md:inline-flex">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m22 8-6 4 6 4V8z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
             Go live
           </Link>
@@ -56,10 +56,10 @@ export default async function TopBar() {
             />
           ) : (
             <>
-              <Link href="/login" className="btn-ghost hidden sm:inline-flex">
+              <Link href="/login" className="btn-ghost hidden md:inline-flex">
                 Log in
               </Link>
-              <Link href="/login?mode=signup" className="btn-amethyst">
+              <Link href="/login?mode=signup" className="btn-amethyst !px-4">
                 Sign up
               </Link>
             </>

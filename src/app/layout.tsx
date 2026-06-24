@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import TopBar from "@/components/TopBar";
@@ -18,6 +18,11 @@ export const metadata: Metadata = {
     "Premium live-streaming for creators. Keep 100% of your fan funding. Instant channels, multi-stream everywhere, live commerce.",
   metadataBase: new URL("https://gintix.vercel.app"),
   openGraph: { title: "GinTix", type: "website" },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
   themeColor: "#08090d",
 };
 
