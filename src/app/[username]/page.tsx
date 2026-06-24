@@ -75,7 +75,7 @@ export default async function ChannelPage({ params }: Params) {
   const shopListings = (listings as CommerceListing[]) ?? [];
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)]">
+    <div className="flex h-[calc(100vh-3.5rem-4rem)] md:h-[calc(100vh-3.5rem)]">
       <div className="min-w-0 flex-1 overflow-y-auto">
         {/* Channel banner */}
         {profile.banner_url && (
@@ -215,6 +215,25 @@ export default async function ChannelPage({ params }: Params) {
                 category={stream?.category ?? ""}
                 channel={profile.username}
                 isPremium={isPremiumViewer}
+              />
+            </div>
+          )}
+
+          {/* Mobile chat (desktop shows it in the right rail) */}
+          {isLiveWithVideo && (
+            <div className="mt-5 h-[460px] overflow-hidden rounded-xl border border-white/8 lg:hidden">
+              <LiveChat
+                channelId={profile.id}
+                channelName={profile.username}
+                viewer={user && viewerUsername ? { id: user.id, username: viewerUsername } : null}
+                moderation={{
+                  slowModeSeconds: stream?.slow_mode_seconds ?? 0,
+                  followersOnly: stream?.followers_only ?? false,
+                  subscribersOnly: stream?.subscribers_only ?? false,
+                  emotesOnly: stream?.emotes_only ?? false,
+                }}
+                isFollower={isFollowing}
+                isOwner={isOwner}
               />
             </div>
           )}

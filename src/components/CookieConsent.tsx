@@ -26,7 +26,7 @@ export default function CookieConsent() {
   if (!show) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[60] p-3 sm:p-4">
+    <div className="fixed inset-x-0 bottom-16 z-[60] p-3 sm:p-4 md:bottom-0">
       <div className="mx-auto flex max-w-3xl flex-col items-start gap-3 rounded-2xl border border-white/10 bg-surface/95 p-4 shadow-lift backdrop-blur-md sm:flex-row sm:items-center">
         <p className="text-sm text-ink-muted">
           GinTix uses essential cookies to run the site. With your okay, we also use

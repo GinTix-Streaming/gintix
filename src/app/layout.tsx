@@ -4,6 +4,7 @@ import "./globals.css";
 import TopBar from "@/components/TopBar";
 import Sidebar from "@/components/Sidebar";
 import CookieConsent from "@/components/CookieConsent";
+import MobileNav from "@/components/MobileNav";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -33,8 +34,9 @@ export default function RootLayout({
         <div className="flex">
           {/* @ts-expect-error async server component */}
           <Sidebar />
-          <main className="min-w-0 flex-1">{children}</main>
+          <main className="min-w-0 flex-1 pb-16 md:pb-0">{children}</main>
         </div>
+        <MobileNav />
         <CookieConsent />
       </body>
     </html>
