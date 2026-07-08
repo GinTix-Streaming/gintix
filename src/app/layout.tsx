@@ -34,6 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="min-h-screen font-sans antialiased">
+        <div className="aurora-bg" aria-hidden="true" />
         {/* @ts-expect-error async server component */}
         <TopBar />
         <div className="flex">

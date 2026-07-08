@@ -24,6 +24,49 @@ body {
   color: #fff;
 }
 
+/* ── Ambient animated background (GPU-only transforms, very light) ── */
+.aurora-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;            /* behind all app content, above the base body color */
+  overflow: hidden;
+  pointer-events: none;
+}
+.aurora-bg::before,
+.aurora-bg::after {
+  content: "";
+  position: absolute;
+  width: 65vmax;
+  height: 65vmax;
+  border-radius: 50%;
+  filter: blur(90px);
+  will-change: transform;
+}
+.aurora-bg::before {
+  top: -22vmax;
+  left: -12vmax;
+  background: radial-gradient(circle, rgba(138, 43, 226, 0.24), transparent 62%);
+  animation: aurora-drift-1 26s ease-in-out infinite alternate;
+}
+.aurora-bg::after {
+  bottom: -26vmax;
+  right: -12vmax;
+  background: radial-gradient(circle, rgba(94, 26, 158, 0.22), transparent 62%);
+  animation: aurora-drift-2 34s ease-in-out infinite alternate;
+}
+@keyframes aurora-drift-1 {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(14vmax, 9vmax, 0) scale(1.18); }
+}
+@keyframes aurora-drift-2 {
+  from { transform: translate3d(0, 0, 0) scale(1.08); }
+  to   { transform: translate3d(-14vmax, -9vmax, 0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .aurora-bg::before,
+  .aurora-bg::after { animation: none; }
+}
+
 /* Thin, branded scrollbars. */
 * {
   scrollbar-width: thin;
