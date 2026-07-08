@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import AuthForm from "@/components/AuthForm";
 import { Logo } from "@/components/Logo";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -11,11 +13,21 @@ const PERKS = [
   "Sell merch in-player with live commerce",
 ];
 
-export default function LoginPage({
+export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: { mode?: string };
+  searchParams: { mode?: string; next?: string };
 }) {
+  // Already signed in? Don't show login/signup — go where they were headed.
+  const supabase = createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) {
+    const next = searchParams.next && searchParams.next.startsWith("/") ? searchParams.next : "/go-live";
+    redirect(next);
+  }
+
   const initialMode = searchParams.mode === "signup" ? "signup" : "signin";
 
   return (
