@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -15,6 +15,7 @@ export default function UserMenu({ username, displayName, avatarUrl }: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -23,6 +24,12 @@ export default function UserMenu({ username, displayName, avatarUrl }: Props) {
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
+
+  // Close the menu after navigation completes — never inside the link's own
+  // click handler (that can unmount the link mid-click and cancel navigation).
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   async function logout() {
     const supabase = createSupabaseBrowserClient();
@@ -52,7 +59,7 @@ export default function UserMenu({ username, displayName, avatarUrl }: Props) {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-white/10 bg-surface shadow-lift">
+        <div className="absolute right-0 z-[70] mt-2 w-56 overflow-hidden rounded-xl border border-white/10 bg-surface shadow-lift">
           <div className="border-b border-white/5 px-4 py-3">
             <p className="truncate text-sm font-semibold text-ink">
               {displayName || username}
@@ -60,13 +67,13 @@ export default function UserMenu({ username, displayName, avatarUrl }: Props) {
             <p className="truncate text-xs text-ink-muted">@{username}</p>
           </div>
           <nav className="py-1 text-sm">
-            <Link href={`/${username}`} className="block px-4 py-2 text-ink-muted hover:bg-white/5 hover:text-ink" onClick={() => setOpen(false)}>
+            <Link href={`/${username}`} className="block px-4 py-2 text-ink-muted hover:bg-white/5 hover:text-ink">
               Your channel
             </Link>
-            <Link href="/go-live" className="block px-4 py-2 text-ink-muted hover:bg-white/5 hover:text-ink" onClick={() => setOpen(false)}>
+            <Link href="/go-live" className="block px-4 py-2 text-ink-muted hover:bg-white/5 hover:text-ink">
               Creator dashboard
             </Link>
-            <Link href="/settings/profile" className="block px-4 py-2 text-ink-muted hover:bg-white/5 hover:text-ink" onClick={() => setOpen(false)}>
+            <Link href="/settings/profile" className="block px-4 py-2 text-ink-muted hover:bg-white/5 hover:text-ink">
               Profile &amp; settings
             </Link>
             <button onClick={logout} className="block w-full px-4 py-2 text-left text-ink-muted hover:bg-white/5 hover:text-ink">
