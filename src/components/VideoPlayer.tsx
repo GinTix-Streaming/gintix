@@ -47,54 +47,40 @@ export default function VideoPlayer({
     const video = videoRef.current;
     if (!video || !playbackId) return;
 
-    const primary = hlsUrlFor(playbackId);
+    const src = hlsUrlFor(playbackId);
+    const isDemo = src === DEMO_HLS;
     let hls: Hls | null = null;
-    let usingFallback = primary === DEMO_HLS;
     let disposed = false;
 
     const onPlaying = () => setStatus("ready");
     video.addEventListener("playing", onPlaying);
 
-    function attach(src: string) {
-      if (disposed || !video) return;
-      if (Hls.isSupported()) {
-        hls?.destroy();
-        hls = new Hls({ lowLatencyMode: true, backBufferLength: 30 });
-        hls.loadSource(src);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          setStatus("ready");
-          video.play().catch(() => {});
-        });
-        hls.on(Hls.Events.ERROR, (_e, data) => {
-          if (!data.fatal) return;
-          // A live channel whose real stream has no segments yet: fall back to
-          // demo content so the player is never a dead black box.
-          if (isLive && !usingFallback) {
-            usingFallback = true;
-            attach(DEMO_HLS);
-          } else if (!isLive) {
-            setStatus("offline");
-          } else {
-            setStatus("error");
-          }
-        });
-      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = src;
+    if (Hls.isSupported()) {
+      hls = new Hls({ lowLatencyMode: true, backBufferLength: 30 });
+      hls.loadSource(src);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        setStatus("ready");
         video.play().catch(() => {});
-      } else {
-        setStatus("error");
-      }
+      });
+      hls.on(Hls.Events.ERROR, (_e, data) => {
+        if (!data.fatal) return;
+        // Real channel that isn't actually broadcasting yet → "waiting" state.
+        // (Demo channels always have data, so this only hits live-but-idle.)
+        setStatus(isLive ? "error" : "offline");
+      });
+    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = src;
+      video.play().catch(() => {});
+    } else {
+      setStatus("error");
     }
 
-    attach(primary);
-
-    // Stall guard: if a live stream produces no playable data quickly, the
-    // broadcaster likely hasn't connected — show demo content instead of black.
+    // Stall guard: a live channel producing no data quickly means the
+    // broadcaster hasn't connected — surface a clear waiting state.
     const stall = window.setTimeout(() => {
-      if (!disposed && isLive && !usingFallback && video.readyState < 3) {
-        usingFallback = true;
-        attach(DEMO_HLS);
+      if (!disposed && isLive && !isDemo && video.readyState < 3) {
+        setStatus("error");
       }
     }, 6000);
 

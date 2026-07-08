@@ -4,6 +4,7 @@ import { formatViewers } from "@/lib/format";
 import LiveChat from "@/components/LiveChat";
 import ChannelDetailsForm from "@/components/creator/ChannelDetailsForm";
 import LiveTimer from "@/components/creator/LiveTimer";
+import BrowserBroadcast from "@/components/creator/BrowserBroadcast";
 
 export const dynamic = "force-dynamic";
 
@@ -51,35 +52,13 @@ export default async function LiveDashboardPage() {
       <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
         {/* Left column */}
         <div className="space-y-5">
-          {/* Stream preview */}
-          <section className="panel overflow-hidden">
-            <div className="flex items-center justify-between border-b border-white/5 px-5 py-3">
-              <h2 className="text-sm font-bold uppercase tracking-wide text-ink">Stream preview</h2>
-              <Link href={`/${profile.username}`} className="text-xs text-amethyst-soft hover:underline">
-                Open channel ↗
-              </Link>
-            </div>
-            <div className="relative aspect-video w-full bg-obsidian">
-              {stream.is_live && stream.thumbnail_url ? (
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={stream.thumbnail_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                  <span className="absolute left-4 top-4 flex items-center gap-1.5 rounded-md bg-red-600 px-2 py-0.5 text-xs font-bold uppercase text-white">
-                    <span className="h-1.5 w-1.5 rounded-full bg-white" /> Live
-                  </span>
-                </>
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-amethyst-fluid">
-                  <div className="rounded-2xl border border-white/10 bg-black/40 px-6 py-4 text-center backdrop-blur-sm">
-                    <p className="text-2xl font-extrabold tracking-tight text-ink">You&apos;re offline</p>
-                    <p className="mt-1 text-sm text-ink-muted">
-                      Press <span className="font-semibold text-amethyst-soft">Go live</span> when your encoder is running.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </section>
+          {/* Broadcast studio — go live from the browser camera */}
+          <BrowserBroadcast
+            streamId={stream.id}
+            streamKey={stream.stream_key}
+            username={profile.username}
+            initialLive={stream.is_live}
+          />
 
           {/* Channel details */}
           <section className="panel p-6">
