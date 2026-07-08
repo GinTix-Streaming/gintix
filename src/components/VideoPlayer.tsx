@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
-import { hlsUrlFor, buildVmapAdTagUrl } from "@/lib/playback";
+import { hlsUrlFor, buildVmapAdTagUrl, DEMO_HLS } from "@/lib/playback";
 import { publicEnv } from "@/lib/env";
 import CommerceDrawer, { type CommerceListing } from "@/components/CommerceDrawer";
 
@@ -47,27 +47,61 @@ export default function VideoPlayer({
     const video = videoRef.current;
     if (!video || !playbackId) return;
 
-    const src = hlsUrlFor(playbackId);
+    const primary = hlsUrlFor(playbackId);
     let hls: Hls | null = null;
+    let usingFallback = primary === DEMO_HLS;
+    let disposed = false;
 
-    if (Hls.isSupported()) {
-      hls = new Hls({ lowLatencyMode: true, backBufferLength: 30 });
-      hls.loadSource(src);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => setStatus("ready"));
-      hls.on(Hls.Events.ERROR, (_e, data) => {
-        if (data.fatal) setStatus(isLive ? "error" : "offline");
-      });
-    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      // Native HLS (Safari / iOS).
-      video.src = src;
-      video.addEventListener("loadedmetadata", () => setStatus("ready"));
-      video.addEventListener("error", () => setStatus("offline"));
-    } else {
-      setStatus("error");
+    const onPlaying = () => setStatus("ready");
+    video.addEventListener("playing", onPlaying);
+
+    function attach(src: string) {
+      if (disposed || !video) return;
+      if (Hls.isSupported()) {
+        hls?.destroy();
+        hls = new Hls({ lowLatencyMode: true, backBufferLength: 30 });
+        hls.loadSource(src);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          setStatus("ready");
+          video.play().catch(() => {});
+        });
+        hls.on(Hls.Events.ERROR, (_e, data) => {
+          if (!data.fatal) return;
+          // A live channel whose real stream has no segments yet: fall back to
+          // demo content so the player is never a dead black box.
+          if (isLive && !usingFallback) {
+            usingFallback = true;
+            attach(DEMO_HLS);
+          } else if (!isLive) {
+            setStatus("offline");
+          } else {
+            setStatus("error");
+          }
+        });
+      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = src;
+        video.play().catch(() => {});
+      } else {
+        setStatus("error");
+      }
     }
 
+    attach(primary);
+
+    // Stall guard: if a live stream produces no playable data quickly, the
+    // broadcaster likely hasn't connected — show demo content instead of black.
+    const stall = window.setTimeout(() => {
+      if (!disposed && isLive && !usingFallback && video.readyState < 3) {
+        usingFallback = true;
+        attach(DEMO_HLS);
+      }
+    }, 6000);
+
     return () => {
+      disposed = true;
+      window.clearTimeout(stall);
+      video.removeEventListener("playing", onPlaying);
       hls?.destroy();
     };
   }, [playbackId, isLive]);
@@ -192,6 +226,8 @@ export default function VideoPlayer({
           className="h-full w-full bg-black"
           controls
           playsInline
+          autoPlay
+          muted
           poster=""
         />
         {/* IMA renders ad UI into this overlay */}
@@ -199,6 +235,24 @@ export default function VideoPlayer({
           ref={adContainerRef}
           className="pointer-events-none absolute inset-0 z-10"
         />
+
+        {status === "loading" && (
+          <div className="pointer-events-none absolute inset-0 z-0 flex flex-col items-center justify-center gap-3 bg-canvas/80">
+            <span className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-amethyst" />
+            <p className="text-sm text-ink-muted">
+              {isLive ? "Stream is starting…" : "Loading…"}
+            </p>
+          </div>
+        )}
+
+        {status === "error" && (
+          <div className="absolute inset-0 z-0 flex flex-col items-center justify-center gap-1 bg-canvas/90 px-6 text-center">
+            <p className="font-semibold text-ink">Waiting for the broadcaster</p>
+            <p className="text-sm text-ink-muted">
+              This channel is live but hasn&apos;t started sending video yet.
+            </p>
+          </div>
+        )}
 
         {status === "offline" && (
           <div className="absolute inset-0 z-0 flex items-center justify-center bg-canvas/90 text-ink-muted">
