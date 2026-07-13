@@ -81,6 +81,9 @@ export default function UserMenu({ username, displayName, avatarUrl, isLive }: P
             <Link href="/go-live" className="block px-4 py-2 text-ink-muted hover:bg-white/5 hover:text-ink">
               {isLive ? "Manage live stream" : "Creator dashboard"}
             </Link>
+            <Link href="/orders" className="block px-4 py-2 text-ink-muted hover:bg-white/5 hover:text-ink">
+              Your orders
+            </Link>
             <Link href="/settings/profile" className="block px-4 py-2 text-ink-muted hover:bg-white/5 hover:text-ink">
               Profile &amp; settings
             </Link>

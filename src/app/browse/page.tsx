@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getLiveStreams, summarizeCategories } from "@/lib/streams";
 import { formatViewers } from "@/lib/format";
 import StreamCard from "@/components/StreamCard";
+import { EmptyState, Icons } from "@/components/EmptyState";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Browse — GinTix" };
@@ -53,7 +54,12 @@ export default async function BrowsePage() {
       <section>
         <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-ink-muted">Live channels</h2>
         {streams.length === 0 ? (
-          <p className="text-ink-muted">No channels are live right now.</p>
+          <EmptyState
+            icon={Icons.broadcast}
+            title="No live channels right now"
+            body="We don't pad this page with fake streams. When creators go live they show up here instantly — or you can be the one everyone's watching."
+            cta={{ label: "Start streaming", href: "/go-live" }}
+          />
         ) : (
           <div className="grid grid-cols-1 gap-x-5 gap-y-7 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {streams.map((s) => (

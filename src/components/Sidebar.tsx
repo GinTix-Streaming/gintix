@@ -49,6 +49,11 @@ export default async function Sidebar() {
           Live channels
         </p>
         <nav className="px-2">
+          {streams.length === 0 && (
+            <p className="px-2.5 py-2 text-xs leading-relaxed text-ink-muted">
+              No one is live right now. We don&apos;t fake this list.
+            </p>
+          )}
           {streams.map((s) => (
             <Link
               key={s.username}

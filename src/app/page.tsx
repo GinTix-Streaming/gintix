@@ -3,6 +3,7 @@ import { getLiveStreams, summarizeCategories } from "@/lib/streams";
 import { formatViewers } from "@/lib/format";
 import StreamCard from "@/components/StreamCard";
 import AuctionRail from "@/components/AuctionRail";
+import { EmptyState, Icons } from "@/components/EmptyState";
 
 export const dynamic = "force-dynamic";
 
@@ -101,16 +102,27 @@ export default async function HomePage() {
       <AuctionRail />
 
       <section className="mb-12">
-        <div className="mb-5 flex items-end justify-between">
-          <div className="flex items-center gap-2.5">
-            <span className="live-dot" />
-            <h2 className="text-xl font-bold tracking-tight text-ink">Live channels</h2>
-            <span className="hidden text-sm text-ink-muted sm:inline">
-              · {formatViewers(totalViewers)} watching now
-            </span>
+        {streams.length > 0 && (
+          <div className="mb-5 flex items-end justify-between">
+            <div className="flex items-center gap-2.5">
+              <span className="live-dot" />
+              <h2 className="text-xl font-bold tracking-tight text-ink">Live channels</h2>
+              <span className="hidden text-sm text-ink-muted sm:inline">
+                · {formatViewers(totalViewers)} watching now
+              </span>
+            </div>
           </div>
-        </div>
-        {rest.length === 0 ? (
+        )}
+
+        {streams.length === 0 ? (
+          <EmptyState
+            icon={Icons.broadcast}
+            title="Nobody's live yet"
+            body="GinTix is brand new — no invented viewer counts, no filler channels. Be the first creator on the platform and keep 100% of your subs and tips, plus 95% of every auction."
+            cta={{ label: "Start your channel", href: "/go-live" }}
+            secondary={{ label: "See how it works", href: "/creators" }}
+          />
+        ) : rest.length === 0 ? (
           <p className="text-ink-muted">No other channels are live right now.</p>
         ) : (
           <div className="grid grid-cols-1 gap-x-5 gap-y-7 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -165,6 +177,8 @@ export default async function HomePage() {
             <Link href="/creators" className="transition hover:text-ink">Creators</Link>
             <Link href="/advertise" className="transition hover:text-ink">Advertise</Link>
             <Link href="/pricing" className="transition hover:text-ink">Pricing</Link>
+            <Link href="/buyer-protection" className="transition hover:text-ink">Buyer protection</Link>
+            <Link href="/auction-rules" className="transition hover:text-ink">Auction rules</Link>
             <Link href="/safety" className="transition hover:text-ink">Safety</Link>
             <Link href="/terms" className="transition hover:text-ink">Terms</Link>
             <Link href="/privacy" className="transition hover:text-ink">Privacy</Link>

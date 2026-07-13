@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import StreamCard from "@/components/StreamCard";
+import { EmptyState, Icons } from "@/components/EmptyState";
 import type { PublicStream } from "@/lib/streams";
 
 export const dynamic = "force-dynamic";
@@ -55,10 +56,13 @@ export default async function FollowingPage() {
       <h1 className="text-2xl font-extrabold tracking-tight text-ink">Following</h1>
 
       {ids.length === 0 ? (
-        <div className="panel mt-6 p-8 text-center">
-          <p className="font-semibold text-ink">You&apos;re not following anyone yet</p>
-          <p className="mt-1 text-sm text-ink-muted">Find channels you love and tap Follow.</p>
-          <Link href="/browse" className="btn-amethyst mt-4 inline-flex">Browse channels</Link>
+        <div className="mt-6">
+          <EmptyState
+            icon={Icons.heart}
+            title="You're not following anyone yet"
+            body="Follow a creator and they'll show up here the moment they go live — and you'll get first shot at their auction lots."
+            cta={{ label: "Browse channels", href: "/browse" }}
+          />
         </div>
       ) : (
         <>
