@@ -27,7 +27,8 @@ export default function LiveToggle({
         .update({
           is_live: true,
           started_live_at: new Date().toISOString(),
-          viewer_count: Math.floor(Math.random() * 180) + 12,
+          // Real audience only. Presence drives this number from here on.
+          viewer_count: 0,
         })
         .eq("id", streamId);
     } else {

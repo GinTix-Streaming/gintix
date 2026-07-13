@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
  *
  * The secret stream_key is returned ONCE here to the owner only.
  */
-export async function POST(_req: NextRequest) {
+export async function POST(req: NextRequest) {
   const supabase = createSupabaseServerClient();
 
   const {
@@ -28,6 +28,17 @@ export async function POST(_req: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) return fail("Not authenticated", 401);
+
+  // `repair: true` re-mints credentials for a channel whose Livepeer stream
+  // no longer exists (ingest returns 404). Nothing is deleted — we mint a
+  // fresh stream and swap the key/playbackId on the existing row.
+  let repair = false;
+  try {
+    const body = await req.json();
+    repair = body?.repair === true;
+  } catch {
+    /* no body — normal provision */
+  }
 
   const admin = createSupabaseAdminClient();
 
@@ -39,6 +50,37 @@ export async function POST(_req: NextRequest) {
     .maybeSingle();
 
   if (existingErr) return fail("Lookup failed", 500, existingErr);
+
+  if (existing && repair) {
+    let fresh;
+    try {
+      fresh = await createLivepeerStream(`gintix-${user.id}-${Date.now()}`);
+    } catch (e) {
+      return fail("Stream provisioning failed at Livepeer", 502, e);
+    }
+
+    const { data: repaired, error: repairErr } = await admin
+      .from("stream_configs")
+      .update({
+        stream_key: fresh.streamKey,
+        livepeer_stream_id: fresh.id,
+        playback_id: fresh.playbackId,
+        is_live: false,
+      })
+      .eq("id", existing.id)
+      .select()
+      .single();
+
+    if (repairErr) return fail("Failed to persist repaired stream", 500, repairErr);
+
+    return ok({
+      streamConfig: repaired,
+      rtmpIngestUrl: "rtmp://rtmp.livepeer.com/live",
+      created: false,
+      repaired: true,
+    });
+  }
+
   if (existing) {
     return ok({
       streamConfig: existing,

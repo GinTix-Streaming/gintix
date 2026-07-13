@@ -5,6 +5,8 @@ import TopBar from "@/components/TopBar";
 import Sidebar from "@/components/Sidebar";
 import CookieConsent from "@/components/CookieConsent";
 import MobileNav from "@/components/MobileNav";
+import RouteProgress from "@/components/RouteProgress";
+import { getNavState } from "@/lib/nav";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -26,15 +28,20 @@ export const viewport: Viewport = {
   themeColor: "#08090d",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Resolved once per request and shared by every nav surface, so the shell
+  // can never contradict itself (e.g. "Go live" while you're already live).
+  const nav = await getNavState();
+
   return (
     <html lang="en" className={inter.variable}>
       <body className="min-h-screen font-sans antialiased">
         <div className="aurora-bg" aria-hidden="true" />
+        <RouteProgress />
         {/* @ts-expect-error async server component */}
         <TopBar />
         <div className="flex">
@@ -42,7 +49,7 @@ export default function RootLayout({
           <Sidebar />
           <main className="min-w-0 flex-1 pb-16 md:pb-0">{children}</main>
         </div>
-        <MobileNav />
+        <MobileNav isLive={nav.isLive} isCreator={nav.isCreator} />
         <CookieConsent />
       </body>
     </html>

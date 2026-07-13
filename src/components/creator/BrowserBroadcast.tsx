@@ -49,6 +49,8 @@ export default function BrowserBroadcast({
   const [err, setErr] = useState<string | null>(null);
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
+  // Held in state so a self-repair can swap in fresh credentials mid-session.
+  const [key, setKey] = useState(streamKey);
 
   async function enableCamera() {
     setErr(null);
@@ -70,6 +72,35 @@ export default function BrowserBroadcast({
     }
   }
 
+  /** One WHIP publish attempt against a given key. */
+  async function publish(media: MediaStream, key: string) {
+    const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+    pcRef.current = pc;
+    media.getTracks().forEach((t) => pc.addTrack(t, media));
+
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    await waitForIce(pc);
+
+    const res = await fetch(WHIP_BASE + encodeURIComponent(key), {
+      method: "POST",
+      headers: { "Content-Type": "application/sdp" },
+      body: pc.localDescription?.sdp ?? offer.sdp ?? "",
+    });
+
+    if (!res.ok) {
+      pc.close();
+      pcRef.current = null;
+      const err = new Error(`Ingest failed (${res.status})`) as Error & { status?: number };
+      err.status = res.status;
+      throw err;
+    }
+
+    resourceRef.current = res.headers.get("Location");
+    const answer = await res.text();
+    await pc.setRemoteDescription({ type: "answer", sdp: answer });
+  }
+
   async function goLive() {
     if (!streamRef.current) {
       await enableCamera();
@@ -78,28 +109,32 @@ export default function BrowserBroadcast({
     const media = streamRef.current;
     setStatus("connecting");
     setErr(null);
+
     try {
-      const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
-      pcRef.current = pc;
-      media.getTracks().forEach((t) => pc.addTrack(t, media));
+      try {
+        await publish(media, key);
+      } catch (e) {
+        // The Livepeer stream behind this key no longer exists. Rather than
+        // dead-ending the creator, silently re-mint credentials and retry once.
+        const status = (e as { status?: number }).status;
+        if (status !== 404 && status !== 403) throw e;
 
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      await waitForIce(pc);
-
-      const res = await fetch(WHIP_BASE + encodeURIComponent(streamKey), {
-        method: "POST",
-        headers: { "Content-Type": "application/sdp" },
-        body: pc.localDescription?.sdp ?? offer.sdp ?? "",
-      });
-      if (!res.ok) {
-        throw new Error(
-          `Ingest failed (${res.status}). Your channel needs a real Livepeer stream — recreate your channel if this keeps happening.`
-        );
+        setErr(null);
+        const r = await fetch("/api/stream/provision", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ repair: true }),
+        });
+        const json = await r.json();
+        const fresh = json?.data?.streamConfig?.stream_key;
+        if (!r.ok || !fresh) {
+          throw new Error(
+            "Your channel's stream credentials expired and couldn't be renewed. Try again in a moment."
+          );
+        }
+        setKey(fresh);
+        await publish(media, fresh);
       }
-      resourceRef.current = res.headers.get("Location");
-      const answer = await res.text();
-      await pc.setRemoteDescription({ type: "answer", sdp: answer });
 
       await supabase
         .from("stream_configs")
@@ -154,6 +189,23 @@ export default function BrowserBroadcast({
 
   const previewing = status === "preview" || status === "connecting" || status === "live";
 
+  /**
+   * "Ghost live": the database says this channel is live, but this browser
+   * isn't sending any video (a previous session ended without cleanup).
+   * Viewers just see "Waiting for the broadcaster" forever. Surface it and
+   * give exactly two ways out.
+   */
+  const ghostLive = initialLive && status !== "live" && status !== "connecting";
+
+  async function endGhost() {
+    await supabase
+      .from("stream_configs")
+      .update({ is_live: false, started_live_at: null, viewer_count: 0 })
+      .eq("id", streamId);
+    setStatus("idle");
+    router.refresh();
+  }
+
   return (
     <section className="panel overflow-hidden">
       <div className="flex items-center justify-between border-b border-white/5 px-5 py-3">
@@ -168,6 +220,29 @@ export default function BrowserBroadcast({
           </Link>
         )}
       </div>
+
+      {ghostLive && (
+        <div className="flex flex-wrap items-center gap-3 border-b border-amber-500/20 bg-amber-500/[0.07] px-5 py-3">
+          <span className="text-lg leading-none">⚠️</span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-amber-200">
+              Your channel is marked live, but no video is being sent
+            </p>
+            <p className="text-xs text-ink-muted">
+              Viewers see &ldquo;waiting for the broadcaster&rdquo;. Start your camera, or end the
+              session.
+            </p>
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <button onClick={goLive} className="btn-amethyst !py-2 text-sm">
+              Start broadcasting
+            </button>
+            <button onClick={endGhost} className="btn-ghost !py-2 text-sm">
+              End session
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="relative aspect-video w-full bg-black">
         <video ref={videoRef} className="h-full w-full object-cover" playsInline muted />

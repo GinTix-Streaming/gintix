@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getLiveStreams } from "@/lib/streams";
 import { formatViewers } from "@/lib/format";
+import { getNavState } from "@/lib/nav";
 
 const NAV = [
   {
@@ -22,7 +23,7 @@ const NAV = [
 
 /** Persistent left rail — nav + live channels (own-lane take on Twitch/Kick). */
 export default async function Sidebar() {
-  const streams = await getLiveStreams(15);
+  const [streams, nav] = await Promise.all([getLiveStreams(15), getNavState()]);
 
   return (
     <aside className="hidden w-60 shrink-0 border-r border-white/5 bg-surface/50 md:block">
@@ -74,13 +75,33 @@ export default async function Sidebar() {
           ))}
         </nav>
 
+        {/* Contextual footer CTA — reflects exactly where the viewer stands. */}
         <div className="mt-4 px-4">
-          <Link
-            href="/go-live"
-            className="block rounded-xl border border-amethyst/30 bg-amethyst/10 px-3 py-3 text-center text-xs font-semibold text-amethyst-soft transition hover:bg-amethyst/15"
-          >
-            Become a creator →
-          </Link>
+          {nav.isLive ? (
+            <Link
+              href="/go-live"
+              className="block rounded-xl border border-red-500/35 bg-red-500/10 px-3 py-3 text-center transition hover:bg-red-500/15"
+            >
+              <span className="flex items-center justify-center gap-2 text-xs font-bold text-red-300">
+                <span className="live-dot" /> You&apos;re live
+              </span>
+              <span className="mt-0.5 block text-[11px] text-ink-muted">Manage your stream →</span>
+            </Link>
+          ) : nav.isCreator ? (
+            <Link
+              href="/go-live"
+              className="block rounded-xl border border-amethyst/30 bg-amethyst/10 px-3 py-3 text-center text-xs font-semibold text-amethyst-soft transition hover:bg-amethyst/15"
+            >
+              Go live →
+            </Link>
+          ) : (
+            <Link
+              href={nav.signedIn ? "/go-live" : "/login?mode=signup"}
+              className="block rounded-xl border border-amethyst/30 bg-amethyst/10 px-3 py-3 text-center text-xs font-semibold text-amethyst-soft transition hover:bg-amethyst/15"
+            >
+              Become a creator →
+            </Link>
+          )}
         </div>
       </div>
     </aside>

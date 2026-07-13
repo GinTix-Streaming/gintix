@@ -139,7 +139,7 @@ export default function Dashboard({ profile, stream: initialStream, listings: in
     const next = !stream.is_live;
     const { data } = await supabase
       .from("stream_configs")
-      .update({ is_live: next, viewer_count: next ? Math.floor(Math.random() * 180) + 12 : 0 })
+      .update({ is_live: next, viewer_count: 0 })
       .eq("id", stream.id)
       .select()
       .single();

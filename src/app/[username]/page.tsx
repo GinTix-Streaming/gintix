@@ -6,6 +6,7 @@ import LiveChat from "@/components/LiveChat";
 import ShopSection from "@/components/ShopSection";
 import FollowButton from "@/components/FollowButton";
 import AuctionPanel from "@/components/AuctionPanel";
+import ViewerCount from "@/components/ViewerCount";
 import PrerollAd from "@/components/PrerollAd";
 import { formatViewers } from "@/lib/format";
 import type { CommerceListing } from "@/components/CommerceDrawer";
@@ -178,7 +179,7 @@ export default async function ChannelPage({ params }: Params) {
               {isLiveWithVideo && (
                 <span className="flex items-center gap-1.5 rounded-md bg-white/5 px-3 py-2 text-sm font-semibold text-ink">
                   <span className="live-dot" />
-                  {formatViewers(stream!.viewer_count)}
+                  <ViewerCount channelId={profile.id} />
                 </span>
               )}
               {isOwner ? (

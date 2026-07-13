@@ -1,26 +1,16 @@
 import Link from "next/link";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import UserMenu from "@/components/UserMenu";
 import SearchBar from "@/components/SearchBar";
 import { Logo } from "@/components/Logo";
+import { getNavState } from "@/lib/nav";
 
-/** Global top navigation — logo, search, auth-aware actions. */
+/** Global top navigation — logo, search, state-aware actions. */
 export default async function TopBar() {
-  const supabase = createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const nav = await getNavState();
 
-  let profile: { username: string; display_name: string | null; avatar_url: string | null } | null =
-    null;
-  if (user) {
-    const { data } = await supabase
-      .from("profiles")
-      .select("username, display_name, avatar_url")
-      .eq("id", user.id)
-      .maybeSingle();
-    profile = data;
-  }
+  const profile = nav.signedIn && nav.username
+    ? { username: nav.username, display_name: nav.displayName, avatar_url: nav.avatarUrl }
+    : null;
 
   return (
     <header className="sticky top-0 z-50 h-14 border-b border-white/5 bg-canvas/70 backdrop-blur-xl">
@@ -44,15 +34,28 @@ export default async function TopBar() {
         <SearchBar />
 
         <div className="flex shrink-0 items-center gap-2">
-          <Link href="/go-live" className="btn-ghost hidden md:inline-flex">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m22 8-6 4 6 4V8z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
-            Go live
-          </Link>
+          {/* State-aware CTA. Never offers "Go live" to someone already live. */}
+          {nav.isLive ? (
+            <Link
+              href="/go-live"
+              className="hidden items-center gap-2 rounded-[10px] border border-red-500/40 bg-red-500/12 px-3.5 py-[9px] text-sm font-semibold text-red-300 transition hover:bg-red-500/20 md:inline-flex"
+              title="You're live — open your stream dashboard"
+            >
+              <span className="live-dot" />
+              You&apos;re live
+            </Link>
+          ) : (
+            <Link href="/go-live" className="btn-ghost hidden md:inline-flex">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m22 8-6 4 6 4V8z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
+              {nav.isCreator ? "Go live" : "Start streaming"}
+            </Link>
+          )}
           {profile ? (
             <UserMenu
               username={profile.username}
               displayName={profile.display_name}
               avatarUrl={profile.avatar_url}
+              isLive={nav.isLive}
             />
           ) : (
             <>

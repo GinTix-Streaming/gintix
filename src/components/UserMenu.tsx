@@ -9,9 +9,10 @@ interface Props {
   username: string;
   displayName: string | null;
   avatarUrl: string | null;
+  isLive?: boolean;
 }
 
-export default function UserMenu({ username, displayName, avatarUrl }: Props) {
+export default function UserMenu({ username, displayName, avatarUrl, isLive }: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -64,14 +65,21 @@ export default function UserMenu({ username, displayName, avatarUrl }: Props) {
             <p className="truncate text-sm font-semibold text-ink">
               {displayName || username}
             </p>
-            <p className="truncate text-xs text-ink-muted">@{username}</p>
+            <div className="flex items-center gap-2">
+              <p className="truncate text-xs text-ink-muted">@{username}</p>
+              {isLive && (
+                <span className="flex shrink-0 items-center gap-1 rounded bg-red-600/90 px-1.5 py-px text-[10px] font-bold uppercase text-white">
+                  <span className="h-1 w-1 rounded-full bg-white" /> Live
+                </span>
+              )}
+            </div>
           </div>
           <nav className="py-1 text-sm">
             <Link href={`/${username}`} className="block px-4 py-2 text-ink-muted hover:bg-white/5 hover:text-ink">
               Your channel
             </Link>
             <Link href="/go-live" className="block px-4 py-2 text-ink-muted hover:bg-white/5 hover:text-ink">
-              Creator dashboard
+              {isLive ? "Manage live stream" : "Creator dashboard"}
             </Link>
             <Link href="/settings/profile" className="block px-4 py-2 text-ink-muted hover:bg-white/5 hover:text-ink">
               Profile &amp; settings

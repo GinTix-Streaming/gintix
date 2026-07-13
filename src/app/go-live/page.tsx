@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCreatorContext } from "@/lib/creator";
 import { formatViewers } from "@/lib/format";
+import ViewerCount from "@/components/ViewerCount";
 import LiveChat from "@/components/LiveChat";
 import ChannelDetailsForm from "@/components/creator/ChannelDetailsForm";
 import LiveTimer from "@/components/creator/LiveTimer";
@@ -40,7 +41,17 @@ export default async function LiveDashboardPage() {
           label="Session"
           value={stream.is_live ? <span className="text-red-500">● Live</span> : "Offline"}
         />
-        <Stat label="Viewers" value={stream.is_live ? formatViewers(stream.viewer_count) : "0"} accent />
+        <Stat
+          label="Viewers"
+          value={
+            stream.is_live ? (
+              <ViewerCount channelId={profile.id} streamConfigId={stream.id} persist />
+            ) : (
+              "0"
+            )
+          }
+          accent
+        />
         <Stat label="Followers" value={formatViewers(profile.follower_count)} />
         <Stat label="Subscribers" value={formatViewers(stream.sub_count)} />
         <Stat
