@@ -56,6 +56,7 @@ export default async function TopBar() {
               displayName={profile.display_name}
               avatarUrl={profile.avatar_url}
               isLive={nav.isLive}
+              isAdmin={nav.isAdmin}
             />
           ) : (
             <>

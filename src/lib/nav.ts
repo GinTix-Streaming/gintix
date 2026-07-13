@@ -14,6 +14,7 @@ export interface NavState {
   avatarUrl: string | null;
   isCreator: boolean;
   isLive: boolean;
+  isAdmin: boolean;
 }
 
 export const EMPTY_NAV: NavState = {
@@ -23,6 +24,7 @@ export const EMPTY_NAV: NavState = {
   avatarUrl: null,
   isCreator: false,
   isLive: false,
+  isAdmin: false,
 };
 
 export async function getNavState(): Promise<NavState> {
@@ -36,7 +38,7 @@ export async function getNavState(): Promise<NavState> {
   const [{ data: profile }, { data: stream }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("username, display_name, avatar_url, is_creator")
+      .select("username, display_name, avatar_url, is_creator, is_admin")
       .eq("id", user.id)
       .maybeSingle(),
     supabase.from("stream_configs").select("is_live").eq("creator_id", user.id).maybeSingle(),
@@ -49,5 +51,6 @@ export async function getNavState(): Promise<NavState> {
     avatarUrl: profile?.avatar_url ?? null,
     isCreator: !!profile?.is_creator,
     isLive: !!stream?.is_live,
+    isAdmin: !!profile?.is_admin,
   };
 }

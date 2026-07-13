@@ -85,16 +85,35 @@ export default async function HomePage() {
           </div>
         </section>
       ) : (
-        <section className="mb-10 rounded-3xl bg-amethyst-fluid p-12 text-center">
-          <h1 className="text-3xl font-extrabold text-ink sm:text-4xl">
-            Go live in one click.{" "}
-            <span className="bg-amethyst-grad bg-clip-text text-transparent">
-              Keep 100% of your funding.
-            </span>
+        <section className="mb-10 overflow-hidden rounded-3xl bg-amethyst-fluid px-6 py-14 text-center sm:px-12">
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-amethyst-soft">
+            Live auctions · Live shopping
+          </p>
+          <h1 className="mx-auto max-w-3xl text-3xl font-extrabold leading-tight text-ink sm:text-5xl">
+            Sell live.{" "}
+            <span className="bg-amethyst-grad bg-clip-text text-transparent">Keep 95%.</span>
           </h1>
-          <Link href="/login?mode=signup" className="btn-amethyst mt-6 !px-6 !py-3">
-            Start your channel
-          </Link>
+          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-ink-muted">
+            Run real auctions on stream — proxy bidding, anti-snipe timers and hidden reserves,
+            built in. GinTix takes <strong className="text-ink">5%</strong>. Whatnot takes 8%. Your
+            subs and tips stay <strong className="text-ink">100%</strong> yours.
+          </p>
+
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+            <Link href="/login?mode=signup" className="btn-amethyst !px-6 !py-3 text-base">
+              Start selling live
+            </Link>
+            <Link href="/auction-rules" className="btn-ghost !px-6 !py-3 text-base">
+              How auctions work
+            </Link>
+          </div>
+
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-7 gap-y-2 text-xs text-ink-muted">
+            <span>🛡 30-day buyer protection</span>
+            <span>⏱ Anti-snipe — no buzzer steals</span>
+            <span>🔒 Your max bid stays hidden</span>
+            <span>✅ Open to every seller, day one</span>
+          </div>
         </section>
       )}
 
@@ -116,11 +135,11 @@ export default async function HomePage() {
 
         {streams.length === 0 ? (
           <EmptyState
-            icon={Icons.broadcast}
-            title="Nobody's live yet"
-            body="GinTix is brand new — no invented viewer counts, no filler channels. Be the first creator on the platform and keep 100% of your subs and tips, plus 95% of every auction."
-            cta={{ label: "Start your channel", href: "/go-live" }}
-            secondary={{ label: "See how it works", href: "/creators" }}
+            icon={Icons.gavel}
+            title="No sellers live yet"
+            body="GinTix is brand new — no invented viewer counts, no filler channels. Be the first to run an auction here: you'd keep 95% of every hammer price, and 100% of your subs and tips."
+            cta={{ label: "Run your first auction", href: "/go-live/auctions" }}
+            secondary={{ label: "How auctions work", href: "/auction-rules" }}
           />
         ) : rest.length === 0 ? (
           <p className="text-ink-muted">No other channels are live right now.</p>

@@ -15,11 +15,16 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "GinTix — Go live in one click",
+  title: "GinTix — Sell live. Keep 95%.",
   description:
-    "Premium live-streaming for creators. Keep 100% of your fan funding. Instant channels, multi-stream everywhere, live commerce.",
+    "Live auctions and live shopping for creators. Real-time proxy bidding, anti-snipe timers and hidden reserves — and you keep 95% of every sale, plus 100% of your subs and tips.",
   metadataBase: new URL("https://gintix.vercel.app"),
-  openGraph: { title: "GinTix", type: "website" },
+  openGraph: {
+    title: "GinTix — Sell live. Keep 95%.",
+    description:
+      "The live auction platform that takes 5%, not 8%. Proxy bidding, anti-snipe, 30-day buyer protection.",
+    type: "website",
+  },
 };
 
 export const viewport: Viewport = {

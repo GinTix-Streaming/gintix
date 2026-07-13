@@ -10,9 +10,10 @@ interface Props {
   displayName: string | null;
   avatarUrl: string | null;
   isLive?: boolean;
+  isAdmin?: boolean;
 }
 
-export default function UserMenu({ username, displayName, avatarUrl, isLive }: Props) {
+export default function UserMenu({ username, displayName, avatarUrl, isLive, isAdmin }: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -87,6 +88,11 @@ export default function UserMenu({ username, displayName, avatarUrl, isLive }: P
             <Link href="/settings/profile" className="block px-4 py-2 text-ink-muted hover:bg-white/5 hover:text-ink">
               Profile &amp; settings
             </Link>
+            {isAdmin && (
+              <Link href="/admin" className="block border-t border-white/5 px-4 py-2 font-semibold text-amethyst-soft hover:bg-white/5">
+                Operations
+              </Link>
+            )}
             <button onClick={logout} className="block w-full px-4 py-2 text-left text-ink-muted hover:bg-white/5 hover:text-ink">
               Log out
             </button>
