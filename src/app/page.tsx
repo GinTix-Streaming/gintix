@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getLiveStreams, summarizeCategories } from "@/lib/streams";
 import { formatViewers } from "@/lib/format";
 import StreamCard from "@/components/StreamCard";
+import AuctionRail from "@/components/AuctionRail";
 
 export const dynamic = "force-dynamic";
 
@@ -95,6 +96,9 @@ export default async function HomePage() {
           </Link>
         </section>
       )}
+
+      {/* Auctions lead — impulse buyers never make it past the fold otherwise. */}
+      <AuctionRail />
 
       <section className="mb-12">
         <div className="mb-5 flex items-end justify-between">

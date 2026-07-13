@@ -149,3 +149,105 @@ body {
   70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
   100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   Elite pass — accessibility, depth, and auction-floor drama.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Keyboard users get a visible, branded focus ring everywhere.
+   Mouse users never see it. This is table stakes that most
+   streaming sites skip. */
+:focus-visible {
+  outline: 2px solid rgba(166, 77, 255, 0.9);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+@layer components {
+  /* Headline treatment for hero numbers / titles. */
+  .text-gradient {
+    background-image: linear-gradient(135deg, #f2f3f7 30%, #c79bff 75%, #8a2be2 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* The auction price. Ticks up with weight when it changes. */
+  .price-tick {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+  .price-bump { animation: price-bump 0.42s cubic-bezier(0.22, 1.2, 0.36, 1); }
+
+  /* A bid just landed — flash the whole panel. */
+  .bid-flash { animation: bid-flash 0.6s ease-out; }
+
+  /* Final seconds: the panel itself starts breathing. */
+  .lot-urgent {
+    animation: lot-urgent 1s ease-in-out infinite;
+    border-color: rgba(239, 68, 68, 0.55) !important;
+  }
+
+  /* Skeleton shimmer for loading states. */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.04) 25%,
+      rgba(255, 255, 255, 0.09) 37%,
+      rgba(255, 255, 255, 0.04) 63%
+    );
+    background-size: 400% 100%;
+    animation: shimmer 1.4s ease infinite;
+    border-radius: 10px;
+  }
+
+  /* Glass panel with a lit top edge — reads as premium hardware. */
+  .panel-lit {
+    position: relative;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: linear-gradient(180deg, rgba(24, 26, 34, 0.9), rgba(13, 15, 20, 0.85));
+    backdrop-filter: blur(10px);
+    box-shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.95);
+  }
+  .panel-lit::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(166, 77, 255, 0.65),
+      transparent
+    );
+  }
+}
+
+@keyframes price-bump {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.11); text-shadow: 0 0 24px rgba(166, 77, 255, 0.75); }
+  100% { transform: scale(1); }
+}
+
+@keyframes bid-flash {
+  0%   { box-shadow: 0 0 0 0 rgba(166, 77, 255, 0.55); }
+  100% { box-shadow: 0 0 0 14px rgba(166, 77, 255, 0); }
+}
+
+@keyframes lot-urgent {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  50%      { box-shadow: 0 0 26px -2px rgba(239, 68, 68, 0.45); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .price-bump,
+  .bid-flash,
+  .lot-urgent,
+  .skeleton { animation: none; }
+}

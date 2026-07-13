@@ -1,5 +1,12 @@
 import Link from "next/link";
 import { getCreatorContext, isCreatorVerified } from "@/lib/creator";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  AUCTION_CREATOR_PCT,
+  AUCTION_FEE_PCT,
+  WHATNOT_FEE_PCT,
+  auctionNetCents,
+} from "@/lib/fees";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +48,10 @@ export default async function RevenuePage() {
           <ul className="mt-4 space-y-2 text-sm text-ink-muted">
             <li>• <span className="text-ink">Subscriptions</span> — 100% to you</li>
             <li>• <span className="text-ink">Fan funding / tips</span> — 100% to you</li>
+            <li>
+              • <span className="text-ink">Live auctions</span> — you keep {AUCTION_CREATOR_PCT}%.
+              GinTix takes {AUCTION_FEE_PCT}%; Whatnot takes {WHATNOT_FEE_PCT}%.
+            </li>
             <li>• <span className="text-ink">In-stream commerce</span> — you keep the sale; GinTix charges only a small checkout fee</li>
           </ul>
         </section>
@@ -52,7 +63,23 @@ export default async function RevenuePage() {
   const subCents = stream.sub_count * 499; // $4.99/sub, 100% to creator
   const fundingCents = Math.round(subCents * 0.4);
   const commerceCents = stream.sub_count * 220;
-  const total = subCents + fundingCents + commerceCents;
+
+  // Real auction earnings — net of the 5% fee, straight from settled lots.
+  const supabase = createSupabaseServerClient();
+  const { data: soldLots } = await supabase
+    .from("auction_lots")
+    .select("sold_price_cents, creator_net_cents")
+    .eq("creator_id", ctx.profile.id)
+    .eq("status", "sold");
+
+  const auctionGross = (soldLots ?? []).reduce((s, l) => s + (l.sold_price_cents ?? 0), 0);
+  const auctionNet = (soldLots ?? []).reduce(
+    (s, l) => s + (l.creator_net_cents ?? auctionNetCents(l.sold_price_cents ?? 0)),
+    0
+  );
+  const auctionCount = (soldLots ?? []).length;
+
+  const total = subCents + fundingCents + commerceCents + auctionNet;
 
   return (
     <div className="space-y-5">
@@ -67,11 +94,12 @@ export default async function RevenuePage() {
         <p className="mt-1 text-sm text-amethyst-soft">Next payout on the 1st · Stripe Connect</p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
           ["Subscriptions", subCents, `${stream.sub_count} active`],
           ["Fan funding", fundingCents, "Tips & cheers"],
           ["Commerce", commerceCents, "In-stream sales"],
+          ["Live auctions", auctionNet, `${auctionCount} lot${auctionCount === 1 ? "" : "s"} sold · net of ${AUCTION_FEE_PCT}%`],
         ].map(([label, cents, sub]) => (
           <div key={label as string} className="panel p-5">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{label}</p>
@@ -80,6 +108,41 @@ export default async function RevenuePage() {
           </div>
         ))}
       </div>
+
+      {auctionCount > 0 && (
+        <section className="panel p-6">
+          <h2 className="text-base font-bold text-ink">Auction payout breakdown</h2>
+          <div className="mt-4 space-y-2 text-sm">
+            <Row label={`Hammer total (${auctionCount} lots)`} value={money(auctionGross)} />
+            <Row
+              label={`GinTix fee (${AUCTION_FEE_PCT}%)`}
+              value={"−" + money(auctionGross - auctionNet)}
+              muted
+            />
+            <div className="flex items-center justify-between border-t border-white/8 pt-2">
+              <span className="font-semibold text-ink">Your payout ({AUCTION_CREATOR_PCT}%)</span>
+              <span className="text-lg font-extrabold text-green-400">{money(auctionNet)}</span>
+            </div>
+            <p className="pt-1 text-xs text-ink-muted">
+              The same lots on Whatnot ({WHATNOT_FEE_PCT}%) would have paid you{" "}
+              {money(auctionGross - Math.round((auctionGross * WHATNOT_FEE_PCT) / 100))} — you kept{" "}
+              <span className="font-semibold text-green-400">
+                {money(auctionNet - (auctionGross - Math.round((auctionGross * WHATNOT_FEE_PCT) / 100)))}
+              </span>{" "}
+              more on GinTix.
+            </p>
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
+function Row({ label, value, muted }: { label: string; value: string; muted?: boolean }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-ink-muted">{label}</span>
+      <span className={muted ? "text-ink-muted" : "font-semibold text-ink"}>{value}</span>
     </div>
   );
 }

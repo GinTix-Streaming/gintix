@@ -4,6 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import ImageUpload from "@/components/ImageUpload";
+import {
+  AUCTION_CREATOR_PCT,
+  AUCTION_FEE_PCT,
+  WHATNOT_FEE_PCT,
+  auctionFeeCents,
+  auctionNetCents,
+} from "@/lib/fees";
 
 export interface Lot {
   id: string;
@@ -20,6 +27,9 @@ export interface Lot {
   current_bid_cents: number;
   bid_count: number;
   sold_price_cents: number | null;
+  platform_fee_bps: number | null;
+  platform_fee_cents: number | null;
+  creator_net_cents: number | null;
 }
 
 const money = (c: number) => "$" + (c / 100).toFixed(2);
@@ -60,6 +70,12 @@ export default function AuctionManager({
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
+
+  // Payout preview: use buy-now if set, else the reserve, else the starting bid.
+  const previewHammer = Math.max(
+    toCents(buyNow) || toCents(reserve) || toCents(start),
+    100
+  );
 
   async function refresh() {
     const { data } = await supabase
@@ -164,6 +180,12 @@ export default function AuctionManager({
               </p>
             </div>
             <div className="text-right">
+              <p className="text-xs uppercase tracking-wide text-ink-muted">You net ({AUCTION_CREATOR_PCT}%)</p>
+              <p className="text-3xl font-extrabold text-green-400">
+                {money(auctionNetCents(liveLot.current_bid_cents || liveLot.starting_bid_cents))}
+              </p>
+            </div>
+            <div className="text-right">
               <p className="text-xs uppercase tracking-wide text-ink-muted">Ends in</p>
               <p className="text-3xl font-extrabold tabular-nums text-ink">{remaining(liveLot)}s</p>
             </div>
@@ -177,6 +199,35 @@ export default function AuctionManager({
         <p className="mt-0.5 text-sm text-ink-muted">
           Queue items up, then drop them on the block mid-stream. Bidders get proxy bidding and anti-snipe by default.
         </p>
+
+        {/* What you actually take home — computed, not marketing. */}
+        <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg border border-green-500/20 bg-green-500/[0.06] px-4 py-3">
+          <div>
+            <p className="text-[11px] uppercase tracking-wide text-ink-muted">
+              If it hammers at {money(previewHammer)}
+            </p>
+            <p className="text-lg font-extrabold text-green-400">
+              You net {money(auctionNetCents(previewHammer))}
+            </p>
+          </div>
+          <p className="text-xs text-ink-muted">
+            Seller fee {AUCTION_FEE_PCT}% ({money(auctionFeeCents(previewHammer))}) · you keep{" "}
+            {AUCTION_CREATOR_PCT}%. Payment processing billed separately.
+            <br />
+            Same lot on Whatnot ({WHATNOT_FEE_PCT}%) nets{" "}
+            <span className="font-semibold text-ink">
+              {money(previewHammer - Math.round((previewHammer * WHATNOT_FEE_PCT) / 100))}
+            </span>{" "}
+            — you keep{" "}
+            <span className="font-semibold text-green-400">
+              {money(
+                auctionNetCents(previewHammer) -
+                  (previewHammer - Math.round((previewHammer * WHATNOT_FEE_PCT) / 100))
+              )}
+            </span>{" "}
+            more here.
+          </p>
+        </div>
 
         <form onSubmit={createLot} className="mt-4 space-y-4">
           <div>
@@ -250,6 +301,12 @@ export default function AuctionManager({
                     <p className="font-bold text-ink">
                       {money(l.sold_price_cents ?? l.current_bid_cents)}
                     </p>
+                    {l.status === "sold" && l.sold_price_cents != null && (
+                      <p className="text-xs font-semibold text-green-400">
+                        You net{" "}
+                        {money(l.creator_net_cents ?? auctionNetCents(l.sold_price_cents))}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex shrink-0 gap-2">

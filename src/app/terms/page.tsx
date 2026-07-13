@@ -36,6 +36,15 @@ export default function TermsPage() {
           ads, the Premium Pass, live-commerce rail fees, and the multi-stream
           add-on. Paid plans renew until cancelled.
         </p>
+        <p>
+          <strong className="text-ink">Live auctions.</strong> GinTix charges a 5%
+          seller fee on the final hammer price of any lot that sells. Standard payment
+          processing charges are billed separately, in addition to the 5% fee. The
+          seller fee is calculated and recorded against the lot at the moment it
+          settles, and is shown to the creator before and after the sale. Lots that end
+          without meeting their reserve do not sell and incur no seller fee. Buyers pay
+          only their winning bid — seller fees are never added on top of the bid.
+        </p>
       </Section>
 
       <Section heading="4. Termination">
