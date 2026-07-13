@@ -5,6 +5,7 @@ import VideoPlayer from "@/components/VideoPlayer";
 import LiveChat from "@/components/LiveChat";
 import ShopSection from "@/components/ShopSection";
 import FollowButton from "@/components/FollowButton";
+import AuctionPanel from "@/components/AuctionPanel";
 import PrerollAd from "@/components/PrerollAd";
 import { formatViewers } from "@/lib/format";
 import type { CommerceListing } from "@/components/CommerceDrawer";
@@ -193,6 +194,15 @@ export default async function ChannelPage({ params }: Params) {
                 </>
               )}
             </div>
+          </div>
+
+          {/* Live auction — appears the moment a lot goes on the block */}
+          <div className="mt-5 max-w-md">
+            <AuctionPanel
+              creatorId={profile.id}
+              viewer={user && viewerUsername ? { id: user.id, username: viewerUsername } : null}
+              isOwner={isOwner}
+            />
           </div>
 
           <div className="panel mt-5 p-5">

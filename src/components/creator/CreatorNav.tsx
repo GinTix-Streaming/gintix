@@ -36,6 +36,9 @@ const I = {
   bag: (
     <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>
   ),
+  gavel: (
+    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m14 13-7.5 7.5a2.12 2.12 0 0 1-3-3L11 10" /><path d="m16 16 6-6" /><path d="m8 8 6-6" /><path d="m9 7 8 8" /><path d="m21 11-8-8" /></svg>
+  ),
 };
 
 const ITEMS: Item[] = [
@@ -57,6 +60,7 @@ const ITEMS: Item[] = [
     icon: I.users,
     children: [{ label: "Roles", href: "/go-live/community/roles" }],
   },
+  { label: "Live auctions", href: "/go-live/auctions", icon: I.gavel },
   { label: "In-stream shop", href: "/go-live/shop", icon: I.bag },
 ];
 
